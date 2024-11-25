@@ -1,0 +1,21 @@
+<svg width="1389" height="1679" viewBox="0 0 1389 1679" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d_1092_491)">
+<path d="M33.2503 0L33.2503 1669.03M148.334 0L148.334 1669.03M263.417 0L263.417 1669.03M1385 0.966004L4 0.965875M378.5 0L378.5 1669.03M1385 186.414L4 186.414M493.584 0L493.584 1669.03M1385 371.862L4 371.862M608.667 0V1669.03M1385 557.311L4 557.31M723.75 0V1669.03M1385 742.759L4 742.759M838.834 0V1669.03M1385 928.207L4 928.207M953.917 0V1669.03M1385 1113.66L4 1113.66M1241.63 0V1669.03M1385 1577.28L4 1577.28M1069 0V1669.03M1385 1299.1L4 1299.1M1356.71 0V1669.03M90.792 0L90.792 1669.03M205.875 0L205.875 1669.03M320.959 0L320.959 1669.03M1385 93.6901L4 93.69M436.042 0L436.042 1669.03M1385 279.138L4 279.138M551.125 0V1669.03M1385 464.587L4 464.586M666.209 0V1669.03M1385 650.035L4 650.035M781.292 0V1669.03M1385 835.483L4 835.483M896.375 0V1669.03M1385 1020.93L4 1020.93M1184.08 0V1669.03M1385 1484.55L4 1484.55M1011.46 0V1669.03M1385 1206.38L4 1206.38M1299.17 0V1669.03M1385 1670L4 1670M1126.54 0V1669.03M1385 1391.83L4 1391.83" stroke="url(#paint0_radial_1092_491)" stroke-opacity="0.4" shape-rendering="crispEdges"/>
+</g>
+<defs>
+<filter id="filter0_d_1092_491" x="0" y="0" width="1389" height="1678.5" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="4"/>
+<feGaussianBlur stdDeviation="2"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1092_491"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1092_491" result="shape"/>
+</filter>
+<radialGradient id="paint0_radial_1092_491" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(694.5 834.516) rotate(90) scale(801.676 397.997)">
+<stop stop-color="#1A73E8"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

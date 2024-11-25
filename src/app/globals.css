@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --red: #ff0055;
+  --blue: #4a6dff;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* styles.css */
+.video-container {
+  width: 100%;
+  /* Set width as per your requirement */
+  overflow: hidden;
+  /* Hide the upper half */
+  position: relative;
+}
+
+.video {
+  width: 100%;
+  /* Ensure video fills container width */
+  position: absolute;
+  bottom: 0;
+  /* Align the video to the bottom */
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: var(--blue);
+  transform-origin: 0%;
+}
+
+/* .editor {
+  max-height: calc(100vh - 350px);
+} */
+
+.main-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}

@@ -26,7 +26,8 @@ import { readUserInfo } from "@/utils/sinutil";
 const ConnectButton = (props: any) => {
   const { children, href, className, active } = props;
   const { setVisible } = useWalletModal();
-  const { publicKey, disconnect } = useWallet();
+  const { publicKey, disconnect, signTransaction, sendTransaction } =
+    useWallet();
   const { walletAddress, setWalletAddress } = useWalletAddress();
   const { userInfo, setUserInfo } = useUserInfo();
 

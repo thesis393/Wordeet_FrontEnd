@@ -9,6 +9,7 @@ import {
   getRecentLimitBlogsExcludingUser,
   IBlogCard,
 } from "@/app/api";
+
 import Layout from "@/components/layout";
 import { Avatar, AvatarGroup, Image, Input } from "@nextui-org/react";
 import { Button, ButtonGroup } from "@nextui-org/button";
@@ -22,11 +23,11 @@ import "swiper/css";
 import ArticleCard from "@/components/card/article";
 import BlogCard from "@/components/card/blogs";
 import useScreenWidth from "@/utils/screen";
-// import Button from "@/components/button/default";
 import ClientBlogs from "@/components/card/clientblogs";
 import CustomButton from "@/components/button/custombutton";
 import ReadTipTap from "@/components/tiptap/readtiptap";
 import { Bitcoin, CameraIcon, CoinsIcon, HandCoins } from "lucide-react";
+import TipModal from "@/components/modal/tipmodal";
 
 const BlogPage = () => {
   const [blog, setBlog] = useState<Article_>();
@@ -37,6 +38,19 @@ const BlogPage = () => {
   const [otherBlogs, setOtherBlogs] = useState<IBlogCard[]>([]);
 
   const [walletaddress, setWalletAddress] = useState<string>("");
+  const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+
+  // Function to open Tip modal
+  const openTipModal = () => {
+    console.log("openTipModal start");
+    setIsTipModalOpen(true);
+  };
+
+  const closeTipModal = () => {
+    console.log("closeTipModal");
+    setIsTipModalOpen(false);
+  };
+
   const router = useRouter();
 
   const handleContentChange = (newContent: any) => {
@@ -142,6 +156,7 @@ const BlogPage = () => {
                 </Link>
               </div>
               <Button
+                onClick={openTipModal}
                 color="default"
                 variant="ghost"
                 size="sm"
@@ -240,6 +255,11 @@ const BlogPage = () => {
           </div>
         </div>
       )}
+      <TipModal
+        isOpen={isTipModalOpen}
+        onClose={closeTipModal}
+        DesPubKey={walletaddress}
+      />
     </Layout>
   );
 };

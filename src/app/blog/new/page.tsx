@@ -14,6 +14,7 @@ import { useWalletAddress } from "@/provider/AppWalletProvider";
 import ReactImageUploading from "react-images-uploading";
 import { CameraIcon, PrinterIcon, SaveIcon } from "lucide-react";
 import WriteLayout from "@/components/layout/writelayout";
+import UploadBlogModal from "@/components/modal/uploadblogmodal";
 
 export default function NewBlog() {
   const [title, setTitle] = useState("");
@@ -21,6 +22,17 @@ export default function NewBlog() {
   const [coverimage, setImage] = useState("dfjdkfjdkjf");
   const [keywords, setKeyWords] = useState("");
   const [images, setImages] = useState<any>([]);
+  const [isUploadBlogModalOpen, setIsUploadBlogModalOpen] = useState(false);
+
+  const closeUploadBlogModal = () => {
+    console.log("closeUploadBlogModal");
+    setIsUploadBlogModalOpen(false);
+  };
+
+  const openUploadBlogModal = () => {
+    console.log("openTipModal start");
+    setIsUploadBlogModalOpen(true);
+  };
 
   const handleContentChange = (newContent: any) => {
     setContent(newContent);
@@ -144,9 +156,9 @@ export default function NewBlog() {
               )}
             </div>
           )}
-        </ReactImageUploading> */}
+        </ReactImageUploading>
 
-        {/* <div className="mt-12">
+        <div className="mt-12">
           <Input
             value={title}
             onValueChange={setTitle}
@@ -173,13 +185,19 @@ export default function NewBlog() {
               color="primary"
               variant="bordered"
               startContent={<PrinterIcon />}
-              onClick={() => handlePost(1)}
+              onClick={() => openUploadBlogModal()}
             >
               Publish Article
             </Button>
           </div>
         </div>
       </div>
+
+      <UploadBlogModal
+        isOpen={isUploadBlogModalOpen}
+        onClose={closeUploadBlogModal}
+        DesPubKey=""
+      />
     </WriteLayout>
   );
 }

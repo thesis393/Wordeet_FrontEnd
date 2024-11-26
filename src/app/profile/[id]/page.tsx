@@ -94,7 +94,7 @@ export default function OtherProfile() {
 
   useEffect(() => {
     console.log("isModalopen", isModalOpen);
-  }, [isModalOpen, isModalOpen]);
+  }, [isModalOpen]);
 
   return (
     <>

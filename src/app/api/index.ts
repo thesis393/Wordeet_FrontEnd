@@ -392,10 +392,6 @@ export const uploadDataIrys = async (
   }
 };
 
-
-
-
-
 export const fundWallet = async (): Promise<{ transactionId?: string; message: string }> => {
   try {
     // Prepare the request payload (if needed, here it is empty)
@@ -416,4 +412,33 @@ export const fundWallet = async (): Promise<{ transactionId?: string; message: s
     return { message: error.response?.data.error || "Error funding wallet" };
   }
 };
+
+// Function to upload an image
+export const uploadImageFile = async (file: File): Promise<{ url?: string; message: string }> => {
+  try {
+    // Prepare the file in a FormData object
+    const formData = new FormData();
+    formData.append("image", file);
+
+    // Send the file to the backend
+    const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}api/upload/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    // Return the URL of the uploaded image
+    return {
+      url: response.data.url,
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    console.error("Error uploading image:", error.response?.data || error.message);
+
+    // Return error message
+    return { message: error.response?.data?.error || "Error uploading image" };
+  }
+};
+
+
 

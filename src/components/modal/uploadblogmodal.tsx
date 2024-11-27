@@ -45,6 +45,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
   const { walletAddress } = useWalletAddress();
   const { onOpenChange } = useDisclosure();
   const [images, setImages] = useState<any>([]);
+  const [title, setTitle] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -57,25 +58,39 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
     }
   };
 
-  const handleUpload = async () => {
-    if (!images[0].file) {
-      toast.error("No file selected!");
-      return;
-    }
-
-    const response = await uploadImageFile(images[0].file);
+  const handleImageUpload = async (
+    file: File
+  ): Promise<{ url?: string; message: string }> => {
+    const response = await uploadImageFile(file);
 
     if (response.url) {
       toast.success(`Image uploaded successfully: ${response.url}`);
       console.log(`Image uploaded successfully: ${response.url}`);
+      return {
+        url: response.url,
+        message: response.message,
+      };
     } else {
       toast.error(`Upload failed: ${response.message}`);
       console.log(`Upload failed: ${response.message}`);
+      return {
+        message: response.message,
+      };
     }
   };
 
   const publishBlog = () => {
-    handleUpload();
+    if (!images.length) {
+      toast.error(`Select Image`);
+      console.log("iamge", images.length);
+      return false;
+    }
+    if (title.length) {
+      toast.error(`Input title`);
+      console.log(`title length: `, title.length);
+      return false;
+    }
+    const result = handleImageUpload(images[0].file);
   };
 
   const { publicKey, signTransaction } = useWallet();
@@ -143,13 +158,11 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                             src={image["data_url"]}
                             width="100%"
                             onClick={() => onImageUpdate(index)}
-                            // isBlurred
-                            // color="default"
                           />
                         </div>
                       ))
                     ) : (
-                      <div>
+                      <div className="flex justify-center">
                         <Button
                           color="success"
                           endContent={<CameraIcon />}
@@ -172,6 +185,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                   classNames={{
                     label: "text-small",
                   }}
+                  defaultSelected
                 >
                   Irys
                 </Checkbox>
@@ -188,6 +202,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
           </>
         )}
       </ModalContent>
+      <Toaster />
     </Modal>
   );
 };

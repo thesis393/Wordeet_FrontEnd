@@ -31,6 +31,7 @@ export default function NewBlog() {
 
   const openUploadBlogModal = () => {
     console.log("openTipModal start");
+    // handlePost(2);
     setIsUploadBlogModalOpen(true);
   };
 
@@ -109,65 +110,6 @@ export default function NewBlog() {
   return (
     <WriteLayout>
       <div className="flex flex-col flex-1 justify-between shadow-[4px_2px_12px_0_rgba(0,0,0,0.1)] mx-auto px-4 py-8 rounded-b-lg container">
-        {/* <ReactImageUploading
-          multiple
-          value={images}
-          onChange={(imageList) => setImages(imageList)}
-          maxNumber={1}
-          dataURLKey="data_url"
-        >
-          {({
-            imageList,
-            onImageUpload,
-            onImageRemoveAll,
-            onImageUpdate,
-            onImageRemove,
-            isDragging,
-            dragProps,
-          }) => (
-            // write your building UI
-            <div>
-              {imageList.length > 0 ? (
-                imageList.map((image, index) => (
-                  <div key={index} className="">
-                    <Image
-                      className="object-cover"
-                      height={200}
-                      shadow="md"
-                      alt="NextUI hero Image with delay"
-                      src={image["data_url"]}
-                      width="100%"
-                      onClick={() => onImageUpdate(index)}
-                      // isBlurred
-                      // color="default"
-                    />
-                  </div>
-                ))
-              ) : (
-                <div>
-                  <Button
-                    color="success"
-                    endContent={<CameraIcon />}
-                    onClick={onImageUpload}
-                  >
-                    Take a cover image
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </ReactImageUploading>
-
-        <div className="mt-12">
-          <Input
-            value={title}
-            onValueChange={setTitle}
-            title="Blog Title"
-            placeholder="Blog Title"
-            label=""
-            size="lg"
-          />
-        </div> */}
         <div className="flex-1 mt-12">
           <Tiptap content={content} onChange={handleContentChange} />
         </div>
@@ -196,7 +138,9 @@ export default function NewBlog() {
       <UploadBlogModal
         isOpen={isUploadBlogModalOpen}
         onClose={closeUploadBlogModal}
-        DesPubKey=""
+        content={content}
+        keywords={keywords}
+        walletAddress={walletAddress}
       />
     </WriteLayout>
   );

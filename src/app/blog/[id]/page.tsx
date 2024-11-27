@@ -116,7 +116,7 @@ const BlogPage = () => {
               // src={"/assets/image/article/sui-network.webp"}
               src={
                 blog?.blog?.coverimage
-                  ? `https://ipfs.io/ipfs/${blog?.blog?.coverimage}`
+                  ? `${blog?.blog?.coverimage}`
                   : "/assets/image/article/sui-network.webp"
               }
               width="100%"
@@ -145,7 +145,7 @@ const BlogPage = () => {
                     className="rounded-full object-cover"
                     src={
                       blog?.author?.avatar
-                        ? `https://ipfs.io/ipfs/${blog?.author?.avatar}`
+                        ? `${blog?.author?.avatar}`
                         : "https://i.pravatar.cc/150?u=a042581f4e29026704d"
                     }
                     size="lg"

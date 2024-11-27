@@ -16,9 +16,9 @@ import {
   Textarea,
 } from "@nextui-org/react";
 import ReactImageUploading from "react-images-uploading";
-import { useWalletAddress } from "@/provider/AppWalletProvider";
 import {
   createUser,
+  postBlog,
   updateUser,
   uploadDataIrys,
   uploadImageFile,
@@ -32,20 +32,24 @@ import toast, { Toaster } from "react-hot-toast";
 interface UploadBlogModalProps {
   isOpen: boolean;
   onClose: () => void;
-  DesPubKey: string;
+  content: string;
+  keywords: string;
+  walletAddress: string | null | undefined;
 }
 
 const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
   isOpen,
   onClose,
-  DesPubKey,
+  content,
+  keywords,
+  walletAddress,
 }) => {
   const [tip, setTip] = useState<any>("");
   const { userInfo } = useUserInfo();
-  const { walletAddress } = useWalletAddress();
   const { onOpenChange } = useDisclosure();
   const [images, setImages] = useState<any>([]);
   const [title, setTitle] = useState("");
+  const [isSelected, setIsSelected] = React.useState(true);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -60,7 +64,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
 
   const handleImageUpload = async (
     file: File
-  ): Promise<{ url?: string; message: string }> => {
+  ): Promise<{ url: string; message: string }> => {
     const response = await uploadImageFile(file);
 
     if (response.url) {
@@ -74,48 +78,54 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       toast.error(`Upload failed: ${response.message}`);
       console.log(`Upload failed: ${response.message}`);
       return {
+        url: ``,
         message: response.message,
       };
     }
   };
 
-  const publishBlog = () => {
+  const publishBlog = async () => {
+    if (!walletAddress) {
+      toast.error("Wallet address is not connected");
+      return;
+    }
+
+    console.log("image", images.length);
     if (!images.length) {
       toast.error(`Select Image`);
-      console.log("iamge", images.length);
       return false;
     }
-    if (title.length) {
+
+    console.log(`title length: `, title.length, `title`, title);
+    if (title.length == 0) {
       toast.error(`Input title`);
-      console.log(`title length: `, title.length);
       return false;
     }
-    const result = handleImageUpload(images[0].file);
+
+    const coverimage = await handleImageUpload(images[0].file);
+    if (coverimage.url == ``) {
+      toast.error(`Upload CoverImage faild:  ${coverimage.message}`);
+    }
+    try {
+      let nStatus = 1;
+      if (isSelected) nStatus = 2;
+      const uploadResult = await uploadDataIrys(
+        coverimage.url,
+        title,
+        content,
+        keywords,
+        walletAddress,
+        nStatus,
+        false
+      );
+      console.log(uploadResult.message, uploadResult.url);
+      console.log("Blog posted successfully", uploadResult);
+    } catch (error) {
+      console.error("Error postin blog", error);
+    }
   };
 
   const { publicKey, signTransaction } = useWallet();
-  const onTipSend = async () => {
-    try {
-      if (!publicKey || !signTransaction) {
-        throw new Error("Wallet not connected.");
-      }
-      if (tip <= 0) {
-        toast.error("Set tip amount");
-        return;
-      }
-      console.log("publickey: ", publicKey);
-      const result = await transferUSDC(
-        DesPubKey,
-        tip,
-        walletAddress,
-        signTransaction
-      );
-      toast.success(`signature, ${result}`);
-      console.log("Tip sent successfully! ", result);
-    } catch (error) {
-      toast.error(`Error sending tip: ${error}`);
-    }
-  };
 
   return (
     <Modal
@@ -179,6 +189,8 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                 maxRows={3}
                 label="Title"
                 placeholder="Give it a title.."
+                value={title}
+                onValueChange={setTitle}
               />
               <div className="flex justify-between px-1 py-2">
                 <Checkbox
@@ -186,6 +198,8 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                     label: "text-small",
                   }}
                   defaultSelected
+                  isSelected={isSelected}
+                  onValueChange={setIsSelected}
                 >
                   Irys
                 </Checkbox>

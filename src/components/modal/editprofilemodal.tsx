@@ -12,9 +12,9 @@ import {
 } from "@nextui-org/react";
 import ReactImageUploading from "react-images-uploading";
 import { useWalletAddress } from "@/provider/AppWalletProvider";
-import { createUser, updateUser } from "@/app/api";
+import { createUser, updateUser, uploadImageFile } from "@/app/api";
 import { useUserInfo } from "@/provider/UserInfoProvider";
-
+import toast, { Toaster } from "react-hot-toast";
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,26 +56,48 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     console.log("Authorize on Twitter");
   };
 
-  const uploadImage = async () => {
-    const data = images.length > 0 ? images[0].file : null;
-    const imgData = new FormData();
-    imgData.append("file", data);
-    console.log("result", data);
+  // const uploadImage = async () => {
+  //   const data = images.length > 0 ? images[0].file : null;
+  //   const imgData = new FormData();
+  //   imgData.append("file", data);
+  //   console.log("result", data);
 
-    const imgRes = await fetch(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-        },
-        body: imgData,
-      }
-    );
+  //   const imgRes = await fetch(
+  //     "https://api.pinata.cloud/pinning/pinFileToIPFS",
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
+  //       },
+  //       body: imgData,
+  //     }
+  //   );
 
-    const imgJsonData = await imgRes.json();
-    console.log("result", imgJsonData);
-    return imgJsonData.IpfsHash;
+  //   const imgJsonData = await imgRes.json();
+  //   console.log("result", imgJsonData);
+  //   return imgJsonData.IpfsHash;
+  // };
+
+  const handleImageUpload = async (
+    file: File
+  ): Promise<{ url: string; message: string }> => {
+    const response = await uploadImageFile(file);
+
+    if (response.url) {
+      toast.success(`Image uploaded successfully: ${response.url}`);
+      console.log(`Image uploaded successfully: ${response.url}`);
+      return {
+        url: response.url,
+        message: response.message,
+      };
+    } else {
+      toast.error(`Upload failed: ${response.message}`);
+      console.log(`Upload failed: ${response.message}`);
+      return {
+        url: ``,
+        message: response.message,
+      };
+    }
   };
 
   const saveProfile = async () => {
@@ -83,11 +105,17 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       console.error("Wallet address is not connected");
       return;
     }
-    const avatar = await uploadImage();
+
+    console.log("image", images.length);
+    if (!images.length) {
+      toast.error(`Select Image`);
+      return false;
+    }
+    const avatar = await handleImageUpload(images[0].file);
     if (`${userInfo?._id}` == "undefined") {
       try {
         const result = createUser(
-          avatar,
+          avatar.url,
           name,
           walletAddress,
           "http://x.com//bresin",
@@ -101,7 +129,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     } else {
       try {
         const result = updateUser(
-          avatar,
+          avatar.url,
           name,
           walletAddress,
           "http://x.com//bresin",
@@ -265,6 +293,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </>
         )}
       </ModalContent>
+      <Toaster />
     </Modal>
   );
 };

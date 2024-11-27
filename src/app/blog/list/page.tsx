@@ -279,7 +279,7 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
                 </div>
               </div>
               <div className="flex justify-center mt-5">
-                {recentBlogsList.length < totalBlogs && (
+                {recentBlogsList?.length < totalBlogs && (
                   <Button
                     onClick={getViewMoreBlogs}
                     style={"white"}
@@ -297,17 +297,5 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
     </>
   );
 };
-
-// const Breadcrumb = () => {
-//   return (
-//     <div className="flex items-center">
-//       <Link href="/blog/list" className="text-gray-500">
-//         Blogs
-//       </Link>
-//       <span className="mx-2">/</span>
-//       <span className="font-semibold">Billing</span>
-//     </div>
-//   );
-// };
 
 export default BlogListPage;

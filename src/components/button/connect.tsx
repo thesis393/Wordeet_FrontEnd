@@ -66,7 +66,7 @@ const ConnectButton = (props: any) => {
                 color="success"
                 src={
                   userInfo?.avatar
-                    ? `https://ipfs.io/ipfs/${userInfo?.avatar}`
+                    ? `${userInfo?.avatar}`
                     : "https://i.pravatar.cc/150?u=a042581f4e29026704d"
                 }
               />

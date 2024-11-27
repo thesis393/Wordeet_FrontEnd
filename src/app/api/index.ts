@@ -433,7 +433,7 @@ export const uploadImageFile = async (file: File): Promise<{ url?: string; messa
       message: response.data.message,
     };
   } catch (error: any) {
-    console.error("Error uploading image:", error.response?.data || error.message);
+    console.log("Error uploading image:", error.response?.data || error.message);
 
     // Return error message
     return { message: error.response?.data?.error || "Error uploading image" };

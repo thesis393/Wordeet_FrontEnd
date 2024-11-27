@@ -26,7 +26,7 @@ const ClientBlogs = (props: IBlogCard) => {
               className="object-cover"
               height={200}
               shadow="md"
-              src={`https://ipfs.io/ipfs/${props.coverimage}`}
+              src={`${props.coverimage}`}
               width="100%"
               onClick={() => router.push(`/blog/${props._id}`)}
             />
@@ -62,7 +62,7 @@ const ClientBlogs = (props: IBlogCard) => {
                     className="rounded-full object-cover"
                     height={40}
                     shadow="md"
-                    src={`https://ipfs.io/ipfs/${props.author.avatar}`}
+                    src={`${props.author.avatar}`}
                     width="40"
                   />
                   <p className="text-sm">{props.author.username}</p>

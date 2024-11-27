@@ -109,7 +109,7 @@ export default function OtherProfile() {
                 <Avatar
                   src={
                     tempuserInfo?.user?.avatar
-                      ? `https://ipfs.io/ipfs/${tempuserInfo?.user?.avatar}`
+                      ? `${tempuserInfo?.user?.avatar}`
                       : ""
                   }
                   className="w-28 h-28 text-large"

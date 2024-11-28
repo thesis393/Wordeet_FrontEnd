@@ -30,6 +30,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import toast, { Toaster } from "react-hot-toast";
 import crypto from "crypto";
 import { version } from "os";
+import bs58 from "bs58";
 
 interface UploadBlogModalProps {
   isOpen: boolean;
@@ -91,15 +92,25 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
     if (wallet && wallet.signMessage) {
       const publicKey = wallet.publicKey?.toBase58();
       const message = `I authorize publishing on Devnet using the key: ${publicKey} Digest: ${digest}`;
-      const encodedMessage = new TextEncoder().encode(message);
-      const signedMessage = await wallet.signMessage(encodedMessage);
-      // Convert Uint8Array to Base64
-      const base64Signature = Buffer.from(signedMessage).toString("base64");
 
+      const encodedMessage = new TextEncoder().encode(message);
+      const signature = await wallet.signMessage(encodedMessage);
+      const serializedSignature = bs58.encode(signature);
+
+      console.log("Encoded Message:", encodedMessage);
+      console.log("Signature:", signature);
+
+      const signingKey = {
+        kty: "EC",
+        crv: "P-256",
+        x: wallet.publicKey?.toBase58(),
+        ext: true,
+      };
       return {
         contributor: publicKey,
-        signature: base64Signature,
+        signature: serializedSignature,
         signingKeyMessage: message,
+        signingKey: signingKey,
       };
     }
   };
@@ -145,6 +156,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       console.log("Digest:", digest);
 
       const resultSignMsg = await signMessage(digest);
+
       const authorship = {
         contributor: resultSignMsg?.contributor,
         signingKeyMessage: resultSignMsg?.signingKeyMessage,
@@ -153,6 +165,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
           name: "ECDSA",
           hash: "SHA-256",
         },
+        signingKey: resultSignMsg?.signingKey,
       };
       console.log("authorship", authorship);
 
@@ -164,17 +177,34 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
 
       let nStatus = 1;
       if (isSelected) nStatus = 2;
-      const uploadResult = await uploadDataIrys(
-        coverimage.url,
-        title,
-        contents,
-        keywords,
-        walletAddress,
-        nStatus,
-        false
-      );
-      console.log(uploadResult.message, uploadResult.url);
-      console.log("Blog posted successfully", uploadResult);
+
+      try {
+        const result = postBlog(
+          coverimage.url,
+          title,
+          contents,
+          keywords,
+          walletAddress,
+          nStatus,
+          false
+        );
+        console.log("Blog posted successfully", result);
+
+        const uploadResult = await uploadDataIrys(
+          coverimage.url,
+          title,
+          contents,
+          keywords,
+          walletAddress,
+          nStatus,
+          false,
+          blogData
+        );
+        console.log(uploadResult.message, uploadResult.url);
+        console.log("Blog posted successfully", uploadResult);
+      } catch (error) {
+        console.error("Error postin blog", error);
+      }
     } catch (error) {
       console.error("Error postin blog", error);
     }

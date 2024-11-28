@@ -355,7 +355,8 @@ export const uploadDataIrys = async (
   keywords: string,
   walletaddress: string,
   status: number,
-  bDelete: boolean
+  bDelete: boolean,
+  blogData: any
 ): Promise<{ url?: string; message: string }> => {
   try {
     const payload = {
@@ -366,6 +367,7 @@ export const uploadDataIrys = async (
       walletaddress,
       status,
       bDelete,
+      blogData,
     };
 
     // Serialize payload as a JSON string
@@ -385,7 +387,7 @@ export const uploadDataIrys = async (
       message: "Data uploaded successfully",
     };
   } catch (error: any) {
-    console.error("Error uploading data:", error.response?.data || error.message);
+    console.log("Error uploading data:", error.response?.data || error.message);
 
     // Return error message
     return { message: error.response?.data?.error || "Error uploading data" };

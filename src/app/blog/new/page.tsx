@@ -68,22 +68,24 @@ export default function NewBlog() {
       console.log("Wallet address is not connected");
       return;
     }
-    if (nStatus) {
-      const data = images.length > 0 ? images[0].file : null;
-      const imgData = new FormData();
-      imgData.append("file", data);
-      console.log("handlePost result", data);
-      const uploadResult = await uploadDataIrys(
-        data,
-        title,
-        content,
-        keywords,
-        walletAddress,
-        nStatus,
-        false
-      );
-      console.log(uploadResult.message, uploadResult.url);
-    }
+
+    // if (nStatus) {
+    //   const data = images.length > 0 ? images[0].file : null;
+    //   const imgData = new FormData();
+    //   imgData.append("file", data);
+    //   console.log("handlePost result", data);
+    //   const uploadResult = await uploadDataIrys(
+    //     data,
+    //     title,
+    //     content,
+    //     keywords,
+    //     walletAddress,
+    //     nStatus,
+    //     false
+    //   );
+    //   console.log(uploadResult.message, uploadResult.url);
+    // }
+
     try {
       const coverimage = await uploadImage();
       const result = postBlog(

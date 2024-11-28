@@ -28,11 +28,13 @@ import { CameraIcon, CoinsIcon } from "lucide-react";
 import { transferUSDC } from "@/utils/tokentransfer";
 import { useWallet } from "@solana/wallet-adapter-react";
 import toast, { Toaster } from "react-hot-toast";
+import crypto from "crypto";
+import { version } from "os";
 
 interface UploadBlogModalProps {
   isOpen: boolean;
   onClose: () => void;
-  content: string;
+  contents: string;
   keywords: string;
   walletAddress: string | null | undefined;
 }
@@ -40,7 +42,7 @@ interface UploadBlogModalProps {
 const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
   isOpen,
   onClose,
-  content,
+  contents,
   keywords,
   walletAddress,
 }) => {
@@ -50,6 +52,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
   const [images, setImages] = useState<any>([]);
   const [title, setTitle] = useState("");
   const [isSelected, setIsSelected] = React.useState(true);
+  const wallet = useWallet();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -84,6 +87,23 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
     }
   };
 
+  const signMessage = async (digest: string) => {
+    if (wallet && wallet.signMessage) {
+      const publicKey = wallet.publicKey?.toBase58();
+      const message = `I authorize publishing on Devnet using the key: ${publicKey} Digest: ${digest}`;
+      const encodedMessage = new TextEncoder().encode(message);
+      const signedMessage = await wallet.signMessage(encodedMessage);
+      // Convert Uint8Array to Base64
+      const base64Signature = Buffer.from(signedMessage).toString("base64");
+
+      return {
+        contributor: publicKey,
+        signature: base64Signature,
+        signingKeyMessage: message,
+      };
+    }
+  };
+
   const publishBlog = async () => {
     if (!walletAddress) {
       toast.error("Wallet address is not connected");
@@ -106,13 +126,48 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
     if (coverimage.url == ``) {
       toast.error(`Upload CoverImage faild:  ${coverimage.message}`);
     }
+
     try {
+      const timestamp = Math.floor(Date.now() / 1000);
+      console.log("Current Timestamp:", timestamp);
+      const content = {
+        body: contents,
+        timestamp: timestamp,
+        title: title,
+      };
+
+      console.log("contents", content);
+
+      const digest = crypto
+        .createHash("sha256")
+        .update(JSON.stringify(content))
+        .digest("hex");
+      console.log("Digest:", digest);
+
+      const resultSignMsg = await signMessage(digest);
+      const authorship = {
+        contributor: resultSignMsg?.contributor,
+        signingKeyMessage: resultSignMsg?.signingKeyMessage,
+        signature: resultSignMsg?.signature,
+        algorithm: {
+          name: "ECDSA",
+          hash: "SHA-256",
+        },
+      };
+      console.log("authorship", authorship);
+
+      const blogData = {
+        content: content,
+        authorship: authorship,
+        version: "MVP-1",
+      };
+
       let nStatus = 1;
       if (isSelected) nStatus = 2;
       const uploadResult = await uploadDataIrys(
         coverimage.url,
         title,
-        content,
+        contents,
         keywords,
         walletAddress,
         nStatus,
@@ -124,8 +179,6 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       console.error("Error postin blog", error);
     }
   };
-
-  const { publicKey, signTransaction } = useWallet();
 
   return (
     <Modal

@@ -138,7 +138,7 @@ export default function NewBlog() {
       <UploadBlogModal
         isOpen={isUploadBlogModalOpen}
         onClose={closeUploadBlogModal}
-        content={content}
+        contents={content}
         keywords={keywords}
         walletAddress={walletAddress}
       />

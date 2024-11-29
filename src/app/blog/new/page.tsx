@@ -9,7 +9,7 @@ import Text from "@tiptap/extension-text";
 import Tiptap from "@/components/tiptap/tiptap";
 import { useEffect, useState } from "react";
 import { Avatar, Button, Image, Input } from "@nextui-org/react";
-import { postBlog, uploadDataIrys } from "@/app/api";
+import { postBlog } from "@/app/api";
 import { useWalletAddress } from "@/provider/AppWalletProvider";
 import ReactImageUploading from "react-images-uploading";
 import { CameraIcon, PrinterIcon, SaveIcon } from "lucide-react";

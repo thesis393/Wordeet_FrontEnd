@@ -4,15 +4,28 @@ import { Card, CardBody, Image, Slider } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import Button from "../button/default";
 import Link from "next/link";
-import { formatDate, IBlogCard, statusText } from "@/app/api";
+import {
+  addCollector,
+  formatDate,
+  getBlogNFTCollectionAddress,
+  IBlogCard,
+  statusText,
+  updateBlogNFTCollectionAddress,
+} from "@/app/api";
 import ReadTipTap from "../tiptap/readtiptap";
 import { useRouter } from "next/navigation";
 import { useDraftBlogInfo } from "@/provider/DraftBlogProvider";
+import { createNftCollection } from "@/utils/createnftcollectioni";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { mintNft } from "@/utils/createnft";
+import { useUserInfo } from "@/provider/UserInfoProvider";
 
 const BlogCard = (props: IBlogCard) => {
   const [liked, setLiked] = useState(false);
   const [isMounted, setIsMounted] = useState(false); // Track mount state
   const { setDraftBlogInfo } = useDraftBlogInfo();
+  const { userInfo } = useUserInfo();
+  const wallet = useWallet();
 
   const router = useRouter();
 
@@ -25,6 +38,88 @@ const BlogCard = (props: IBlogCard) => {
     }
   };
 
+  const fetchNFTCollectionAddress = async (
+    blogId: string
+  ): Promise<string | null> => {
+    const nftCollectionAddress = await getBlogNFTCollectionAddress(blogId);
+
+    if (nftCollectionAddress) {
+      console.log("NFT Collection Address:", nftCollectionAddress);
+      return nftCollectionAddress;
+    } else {
+      console.log("Failed to fetch NFT Collection Address.");
+      return null;
+    }
+  };
+
+  const updateNFTCollectionAddress = async (
+    blogId: string,
+    nftCollectionAddress: any
+  ) => {
+    if (!blogId || !nftCollectionAddress) {
+      console.log("Blog ID and NFT Collection Address are required.");
+      return;
+    }
+
+    const success = await updateBlogNFTCollectionAddress(
+      blogId,
+      nftCollectionAddress
+    );
+
+    if (success) {
+      console.log("NFT collection address updated successfully.");
+      return true;
+    } else {
+      console.log("Failed to update NFT collection address.");
+      return false;
+    }
+  };
+
+  const onClickCardBtn = async () => {
+    if (props.status) {
+      let collectionAddress = await fetchNFTCollectionAddress(props._id);
+      const maxSymbolLength = 10;
+      console.log("collectionAddress", collectionAddress);
+      if (!collectionAddress) {
+        console.log("collectionAddress", collectionAddress);
+        const collectionData = {
+          name: props.title,
+          symbol: props.title.replace(/\s+/g, "").substring(0, maxSymbolLength),
+          description: window.location.href,
+          image: props.coverimage,
+        };
+        collectionAddress = await createNftCollection(collectionData, wallet);
+        console.log("createNftCollection collectionAddress", collectionAddress);
+      }
+      if (collectionAddress) {
+        const updateResult = await updateNFTCollectionAddress(
+          props._id,
+          collectionAddress
+        );
+        if (updateResult) {
+          const nftData = {
+            name: `${props.title}0`,
+            symbol: props.title
+              .replace(/\s+/g, "")
+              .substring(0, maxSymbolLength),
+            description: window.location.href,
+            image: props.coverimage,
+          };
+          const mintAddress = await mintNft(nftData, wallet, collectionAddress);
+          if (mintAddress) {
+            const newCollector = {
+              avatar: userInfo?.avatar,
+              username: userInfo?.username,
+              walletaddress: userInfo?.walletaddress,
+              nftMintAddress: mintAddress,
+            };
+            const result = await addCollector(props._id, newCollector);
+          }
+        }
+      }
+    } else {
+    }
+  };
   return (
     <Card
       isBlurred
@@ -86,7 +181,11 @@ const BlogCard = (props: IBlogCard) => {
               </div>
             </div>
             <div className="flex justify-center w-full">
-              <Button style={"purple"} className="mt-2">
+              <Button
+                style={"purple"}
+                className="mt-2"
+                onClick={onClickCardBtn}
+              >
                 {statusText[props.status]}
               </Button>
             </div>

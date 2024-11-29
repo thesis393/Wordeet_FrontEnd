@@ -3,7 +3,7 @@ import axiosInstance from "@/utils/axios";
 export const statusText: { [key: number]: string } = {
   0: "Draft",
   1: "Collect",
-  2: "Published",
+  2: "Collect",
 };
 
 export interface IBlogCard {
@@ -23,6 +23,15 @@ export interface IBlogCard {
     _id?: string;
     walletaddress?: string;
   };
+  nftCollectionAddress?: string;
+  totalCollector?: number;
+  collecterInfos?: Array<{
+    avatar: string;
+    username: string;
+    _id?: string;
+    walletaddress: string;
+    nftMintAddress: string;
+  }>;
 }
 
 export interface IBlogResponse {
@@ -347,6 +356,33 @@ export const getRecentLimitBlogsExcludingUser = async (walletaddress: string, li
   }
 };
 
+export const signVerify = async (
+  verifyData: any
+): Promise<{ bVerify: boolean; message: string }> => {
+  try {
+    // Serialize blogData as a JSON string
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}api/upload/verify`,
+      { data: JSON.stringify(verifyData) }, // Send serialized data
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Return the uploaded data URL
+    return {
+      bVerify: response.data.bVerify,
+      message: "Verify successfully",
+    };
+  } catch (error: any) {
+    console.log("Error uploading data:", error.response?.data || error.message);
+    // Return error message
+    return { bVerify: false, message: error.response?.data?.error || "Error uploading data" };
+  }
+};
+
 
 export const uploadDataIrys = async (
   coverimage: string,
@@ -443,4 +479,86 @@ export const uploadImageFile = async (file: File): Promise<{ url?: string; messa
 };
 
 
+export const uploadSingleDataIrys = async (
+  singleData: any
+): Promise<{ url: string; message: string }> => {
+  try {
+    // Serialize payload as a JSON string
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}api/upload/singleupload`,
+      { data: JSON.stringify(singleData) }, // Send serialized data
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
+    // Return the uploaded data URL
+    return {
+      url: response.data.url,
+      message: "Data uploaded successfully",
+    };
+  } catch (error: any) {
+    console.log("Error uploading data:", error.response?.data || error.message);
+
+    // Return error message
+    return { url: "", message: error.response?.data?.error || "Error uploading data" };
+  }
+};
+
+
+//NFT
+export const getBlogNFTCollectionAddress = async (blogId: string): Promise<string | null> => {
+  try {
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}api/blog/getNFTCollectionAddress`,
+      { blogId }
+    );
+
+    console.log('Fetched NFT Collection Address:', response.data.nftCollectionAddress);
+    // Return the address
+    return response.data.nftCollectionAddress;
+  } catch (error: any) {
+    console.error('Error fetching NFT collection address:', error.response?.data || error.message);
+
+    // Return null in case of an error
+    return null;
+  }
+};
+
+export const updateBlogNFTCollectionAddress = async (
+  blogId: string,
+  nftCollectionAddress: string
+): Promise<boolean> => {
+  try {
+    // Send the POST request
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}api/blog/updateNFTCollectionAddress`,
+      { blogId, nftCollectionAddress }
+    );
+
+    console.log('Update Response:', response.data);
+    return true; // Return success
+  } catch (error: any) {
+    console.log('Error updating NFT collection address:', error.response?.data || error.message);
+    return false; // Return failure
+  }
+};
+
+
+export const addCollector = async (blogId: string, collectorInfo: any) => {
+  try {
+    console.log("addCollection")
+    const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}api/blog/addCollectorInfo`, {
+      blogId,
+      collectorInfo,
+    });
+
+    console.log('Collector added successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding collector info:', error);
+    return null;
+  }
+};

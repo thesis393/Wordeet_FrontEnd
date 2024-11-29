@@ -19,6 +19,7 @@ import ReactImageUploading from "react-images-uploading";
 import {
   createUser,
   postBlog,
+  signVerify,
   updateUser,
   uploadDataIrys,
   uploadImageFile,
@@ -133,12 +134,15 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       return false;
     }
 
+    //Coverimage upload Part
     const coverimage = await handleImageUpload(images[0].file);
     if (coverimage.url == ``) {
       toast.error(`Upload CoverImage faild:  ${coverimage.message}`);
+      return;
     }
 
     try {
+      //Make Irys data.
       const timestamp = Math.floor(Date.now() / 1000);
       console.log("Current Timestamp:", timestamp);
       const content = {
@@ -156,6 +160,13 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       console.log("Digest:", digest);
 
       const resultSignMsg = await signMessage(digest);
+
+      const resultVerify = await signVerify(resultSignMsg);
+
+      if (!resultVerify) {
+        toast.error("Verify failed");
+        return;
+      }
 
       const authorship = {
         contributor: resultSignMsg?.contributor,

@@ -12,11 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export const metadata: Metadata = {
-  title: "HomePage",
-  description: "Wordit home page.",
-};
-
 export default function Home() {
   const [domLoaded, setDomLoaded] = useState(false);
 

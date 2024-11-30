@@ -11,7 +11,7 @@ import {
 } from "@/app/api";
 
 import Layout from "@/components/layout";
-import { Avatar, AvatarGroup, Image, Input } from "@nextui-org/react";
+import { Avatar, AvatarGroup, Card, Image, Input } from "@nextui-org/react";
 import { Button, ButtonGroup } from "@nextui-org/button";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -60,14 +60,25 @@ const BlogPage = () => {
   useEffect(() => {
     const fetchClientBlogs = async () => {
       setIsLoading(true);
+
       try {
-        const result = await getClientBlogs(walletaddress, 2, blog?.blog?._id);
-        setClientBlogs(result);
-        const otherBlogsResult = await getRecentLimitBlogsExcludingUser(
-          walletaddress,
-          2
-        );
-        setOtherBlogs(otherBlogsResult);
+        console.log("ddd", blog?.blog?.walletaddress);
+        if (blog?.blog?.walletaddress) {
+          console.log("ddd", blog?.blog?.walletaddress);
+
+          const result = await getClientBlogs(
+            blog?.blog?.walletaddress,
+            2,
+            blog?.blog?._id
+          );
+          setClientBlogs(result);
+          console.log("getClientBlogs", result);
+          const otherBlogsResult = await getRecentLimitBlogsExcludingUser(
+            blog?.blog?.walletaddress,
+            2
+          );
+          setOtherBlogs(otherBlogsResult);
+        }
       } catch (err: any) {
         setError(err.message || "Failed to fetch blogs");
       } finally {
@@ -176,14 +187,14 @@ const BlogPage = () => {
             <AvatarGroup
               isBordered
               max={5}
-              total={blog?.blog?.collect?.length}
+              total={blog?.blog?.nTotalCollecter}
               renderCount={(count) => (
                 <p className="font-medium text-foreground text-small ms-2">
                   {count} Collected
                 </p>
               )}
             >
-              {blog?.blog?.collect?.map((item: any, idx: number) => (
+              {blog?.blog?.collectorInfos?.map((item: any, idx: number) => (
                 <Avatar src={item?.avatar} key={idx} />
               ))}
             </AvatarGroup>
@@ -209,7 +220,100 @@ const BlogPage = () => {
               </div>
             </div>
           </div>
-
+          <div className="flex flex-col gap-8 mt-6">
+            <Card>
+              <div className="flex sm:flex-row flex-col justify-between items-center p-4">
+                <div>
+                  <p className="text-xl">Subscribe to Social Graph Ventures</p>
+                  <p>Receive the latest updates directly to your inbox</p>
+                </div>
+              </div>
+            </Card>
+            <div className="flex md:flex-row flex-col gap-8">
+              <Card className="p-4 basis-1/2">
+                <div className="flex flex-col items-center gap-8">
+                  <Image
+                    src={
+                      blog?.blog?.coverimage
+                        ? blog?.blog?.coverimage
+                        : `/assets/image/article/6.png`
+                    }
+                    alt=""
+                    width={200}
+                    height={200}
+                  />
+                  <div className="flex flex-col items-center gap-4">
+                    <p>
+                      Mint this entry as an NFT to add it to your collection.
+                    </p>
+                    <Button>Mint</Button>
+                    <AvatarGroup
+                      isBordered
+                      max={5}
+                      total={blog?.blog?.nTotalCollecter}
+                      renderCount={(count) => (
+                        <p className="font-medium text-foreground text-small ms-2">
+                          {count} Collected
+                        </p>
+                      )}
+                    >
+                      {blog?.blog?.collectorInfos?.map(
+                        (item: any, idx: number) => (
+                          <Link
+                            href={`/profile/${item.walletaddress}`}
+                            key={idx}
+                          >
+                            <Avatar src={item?.avatar} size="sm" />
+                          </Link>
+                        )
+                      )}
+                    </AvatarGroup>
+                  </div>
+                </div>
+              </Card>
+              <Card className="flex flex-col p-8 basis-1/2">
+                <div className="flex flex-1">
+                  <p>Verification</p>
+                  <p>
+                    This entry has been permanently stored onchain and signed by
+                    its creator.
+                  </p>
+                </div>
+                <div className="border-gray-900 border rounded-xl divide-y-1 divide-gray-900">
+                  <div className="flex flex-col px-3 py-1">
+                    <p className="text-xs uppercase">arweave transaction</p>
+                    <p className="text-sm">asdf9oasdfasdfasdfasghasdfasdfa</p>
+                  </div>
+                  {blog?.blog?.nftCollectionAddress ? (
+                    <div className="flex flex-col px-3 py-1">
+                      <p className="text-xs uppercase">NFT Address</p>
+                      <p className="text-sm">
+                        {blog?.blog?.nftCollectionAddress}
+                      </p>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {blog?.blog?.walletaddress ? (
+                    <div className="flex flex-col px-3 py-1">
+                      <p className="text-xs uppercase">AUTHOR ADDRESS</p>
+                      <p className="text-sm">{blog?.blog?.walletaddress}</p>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  {blog?.blog?._id ? (
+                    <div className="flex flex-col px-3 py-1">
+                      <p className="text-xs uppercase">Content Digest</p>
+                      <p className="text-sm">{blog?.blog?._id}</p>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
           <div className="mt-10">
             <div className="flex justify-between items-center felx-row">
               <p className="text-2xl">
@@ -224,6 +328,7 @@ const BlogPage = () => {
                 View All
               </div>
             </div>
+
             <div className="">
               <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_480px)))] grid-rows-[453px] mydiv">
                 {clientBlogs.map((article, idx: number) => (

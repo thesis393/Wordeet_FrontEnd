@@ -19,12 +19,14 @@ import { createNftCollection } from "@/utils/createnftcollectioni";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { mintNft } from "@/utils/createnft";
 import { useUserInfo } from "@/provider/UserInfoProvider";
+import { useAppContext } from "@/provider/AppProvider";
 
 const BlogCard = (props: IBlogCard) => {
   const [liked, setLiked] = useState(false);
   const [isMounted, setIsMounted] = useState(false); // Track mount state
   const { setDraftBlogInfo } = useDraftBlogInfo();
   const { userInfo } = useUserInfo();
+  const { setLoading } = useAppContext();
   const wallet = useWallet();
 
   const router = useRouter();
@@ -77,6 +79,7 @@ const BlogCard = (props: IBlogCard) => {
 
   const onClickCardBtn = async () => {
     if (props.status) {
+      setLoading(true);
       let collectionAddress = await fetchNFTCollectionAddress(props._id);
       const maxSymbolLength = 10;
       console.log("collectionAddress", collectionAddress);
@@ -119,6 +122,7 @@ const BlogCard = (props: IBlogCard) => {
       }
     } else {
     }
+    setLoading(false);
   };
   return (
     <Card

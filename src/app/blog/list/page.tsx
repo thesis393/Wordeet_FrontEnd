@@ -1,6 +1,12 @@
 "use client";
 
-import { Article, fetchBlog, getRecentBlogs, IBlogCard } from "@/app/api";
+import {
+  Article,
+  fetchBlog,
+  getRecentBlogs,
+  getTrendingBlogs,
+  IBlogCard,
+} from "@/app/api";
 import Layout from "@/components/layout";
 import { Image, Input } from "@nextui-org/react";
 import Link from "next/link";
@@ -24,6 +30,19 @@ const BlogListPage = () => {
   const [recentBlogsList, setRecentBlogsList] = useState<IBlogCard[]>([]);
   const [totalBlogs, setTotalBlogs] = useState<number>(0);
   const [isViewMoreLoading, setIsViewMoreLoading] = useState<boolean>(false);
+  const [blogs, setBlogs] = useState<any[]>([]); // Array to store blogs
+  const [limit, setLimit] = useState<number>(5); // Default limit
+
+  useEffect(() => {
+    const fetchTrendingBlogs = async () => {
+      const blogsData = await getTrendingBlogs(limit);
+      if (blogsData) {
+        setBlogs(blogsData);
+      }
+    };
+
+    fetchTrendingBlogs();
+  }, []);
 
   useEffect(() => {
     setDomLoaded(true);
@@ -240,36 +259,44 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
                   modules={[Navigation]}
                   className="trendBlog"
                 >
-                  <SwiperSlide>
-                    <TrendBlogCard
-                      title={articles[0].title}
-                      content={articles[0].content}
-                      createdAt={articles[0].createdAt}
-                      coverimage={articles[0].coverimage}
-                      _id={articles[0]._id}
-                      author={articles[0].author}
-                      status={articles[0].status}
-                      walletaddress={articles[0].walletaddress}
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <TrendBlogCard
-                      title={articles[0].title}
-                      content={articles[0].content}
-                      createdAt={articles[0].createdAt}
-                      coverimage={articles[0].coverimage}
-                      _id={articles[0]._id}
-                      author={articles[0].author}
-                      status={articles[0].status}
-                      walletaddress={articles[0].walletaddress}
-                    />
-                  </SwiperSlide>
+                  {blogs.length === 0 ? (
+                    <SwiperSlide>
+                      <TrendBlogCard
+                        title={articles[0].title}
+                        content={articles[0].content}
+                        createdAt={articles[0].createdAt}
+                        coverimage={articles[0].coverimage}
+                        _id={articles[0]._id}
+                        author={articles[0].author}
+                        status={articles[0].status}
+                        walletaddress={articles[0].walletaddress}
+                      />
+                    </SwiperSlide>
+                  ) : (
+                    blogs.map((blog: any, idx: number) => (
+                      <SwiperSlide key={idx}>
+                        <TrendBlogCard
+                          title={blog?.title}
+                          content={blog.content}
+                          createdAt={blog.createdAt}
+                          coverimage={blog.coverimage}
+                          _id={blog._id}
+                          author={blog.author}
+                          status={blog.status}
+                          walletaddress={blog.walletaddress}
+                          collectorInfos={blog.collectorInfos}
+                          nTotalCollecter={blog.nTotalCollecter}
+                          key={idx}
+                        />
+                      </SwiperSlide>
+                    ))
+                  )}
                 </Swiper>
               </div>
             </div>
 
             <div className="mt-10">
-              <p className="text-xl">Latest articles</p>
+              <p className="text-2xl text-center">Latest articles</p>
               <div className="">
                 <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
                   {recentBlogsList.length &&

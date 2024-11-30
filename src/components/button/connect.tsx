@@ -105,9 +105,7 @@ const ConnectButton = (props: any) => {
                     }}
                     avatarProps={{
                       size: "md",
-                      src: userInfo?.avatar
-                        ? `https://ipfs.io/ipfs/${userInfo?.avatar}`
-                        : "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+                      src: `${userInfo?.avatar}`,
                     }}
                   />
                 </DropdownItem>

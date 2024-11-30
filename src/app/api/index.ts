@@ -24,8 +24,8 @@ export interface IBlogCard {
     walletaddress?: string;
   };
   nftCollectionAddress?: string;
-  totalCollector?: number;
-  collecterInfos?: Array<{
+  nTotalCollecter?: number;
+  collectorInfos?: Array<{
     avatar: string;
     username: string;
     _id?: string;
@@ -53,6 +53,14 @@ export interface Article {
   collect?: Collector[]
 }
 
+export interface CollectorInfo {
+  avatar: string;
+  username: string;
+  walletaddress: string;
+  nftMintAddress: string;
+  _id: string;
+}
+
 export interface Article_ {
   blog: {
     bDelete: string;
@@ -63,9 +71,12 @@ export interface Article_ {
     content: string;
     createdAt: string;
     updatedAt: string;
-    walletAddress: string;
+    walletaddress: string;
     _id: string;
-    collect?: Collector[]
+    collect?: Collector[];
+    nTotalCollecter?: number;
+    collectorInfos?: CollectorInfo[];
+    nftCollectionAddress?: string;
   },
   author: {
     avatar: string;
@@ -327,6 +338,7 @@ export const getClientBlogs = async (walletaddress: string, limit: number, exclu
     // Send the request to the server
     const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}api/blog/recentlimitclient`, payload);
 
+    console.log("getClientBlogs success");
     // Return the blogs as an array of IBlogCard objects
     return response.data.blogs as IBlogCard[];
   } catch (error: any) {
@@ -560,5 +572,37 @@ export const addCollector = async (blogId: string, collectorInfo: any) => {
   } catch (error) {
     console.error('Error adding collector info:', error);
     return null;
+  }
+};
+
+export const getTrendingBlogs = async (limit: number) => {
+  try {
+    console.log('Fetching trending blogs...');
+    const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}api/blog/getTrendingBlogs`, {
+      limit,
+    });
+
+    console.log('Trending blogs fetched successfully:', response.data);
+    return response.data.blogs; // Assuming the response contains a 'blogs' array
+  } catch (error) {
+    console.error('Error fetching trending blogs:', error);
+    return null;
+  }
+};
+
+export const getTopCreators = async (limit: number) => {
+  try {
+    console.log('Fetching top creators...');
+
+    // Send POST request to fetch the top creators
+    const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}api/blog/getTopCreators`, {
+      limit,
+    });
+
+    console.log('Top creators fetched successfully:', response.data);
+    return response.data.topCreators; // Assuming the response contains a 'creators' array
+  } catch (error) {
+    console.error('Error fetching top creators:', error);
+    return null; // In case of an error, return null or handle error appropriately
   }
 };

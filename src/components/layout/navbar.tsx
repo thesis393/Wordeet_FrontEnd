@@ -16,7 +16,7 @@ const Navbar = (props: any) => {
     },
     {
       title: "wordeets",
-      path: "/subscribe",
+      path: "/wordeets",
     },
   ];
 

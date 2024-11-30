@@ -7,6 +7,8 @@ import { NextUIProvider } from "@nextui-org/react";
 import AppWalletProvider from "@/provider/AppWalletProvider";
 import UserInfoProvider from "@/provider/UserInfoProvider";
 import DraftBlogInfoProvider from "@/provider/DraftBlogProvider";
+import Loader from "@/components/loading/loader";
+import AppProvider from "@/provider/AppProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -51,7 +53,10 @@ export default function RootLayout({
           <NextTopLoader />
           <NextUIProvider>
             <UserInfoProvider>
-              <DraftBlogInfoProvider>{children}</DraftBlogInfoProvider>
+              <AppProvider>
+                <DraftBlogInfoProvider>{children}</DraftBlogInfoProvider>
+                <Loader />
+              </AppProvider>
             </UserInfoProvider>
           </NextUIProvider>
         </AppWalletProvider>

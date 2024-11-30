@@ -115,7 +115,7 @@ export default function NewBlog() {
         <div className="flex-1 mt-12">
           <Tiptap content={content} onChange={handleContentChange} />
         </div>
-        <div className="mt-12">
+        <div className="bottom-5 sticky mt-12">
           <div className="flex flex-raw justify-center gap-9">
             <Button
               color="success"

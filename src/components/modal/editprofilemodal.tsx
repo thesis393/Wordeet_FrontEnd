@@ -190,7 +190,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       ) : (
                         <Avatar
                           isBordered
-                          src={`https://ipfs.io/ipfs/${userInfo?.avatar}`} // Replace with your image path
+                          src={`${userInfo?.avatar}`} // Replace with your image path
                           alt="Profile Image"
                           size="lg"
                           className="mb-4 w-36 h-36"

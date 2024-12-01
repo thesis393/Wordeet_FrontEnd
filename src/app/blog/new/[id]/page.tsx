@@ -175,7 +175,7 @@ export default function NewBlog() {
                     height={200}
                     shadow="md"
                     alt="NextUI hero Image with delay"
-                    src={`https://ipfs.io/ipfs/${coverimage}`}
+                    src={`${coverimage}`}
                     width="100%"
                     onClick={() => onImageUpdate(0)}
                   />

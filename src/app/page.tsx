@@ -51,10 +51,10 @@ export default function () {
     <>
       {domLoaded && (
         <div className="flex flex-col bg-[#1E1B4B] min-h-screen">
-          <motion.div
+          {/* <motion.div
             className="z-20 h-1 progress-bar"
             style={{ scaleX: scrollYProgress }}
-          />
+          /> */}
           <div className="flex flex-col bg-gradient-to-bl from-[#1E1B4B] from-20% via-[#2a2b69] via-30% to-[#1E1B4B] to-50%">
             <div className="relative flex justify-center items-center mx-auto px-4 md:px-10 pt-8 md:pt-20 container">
               <Image

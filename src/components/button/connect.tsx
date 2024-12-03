@@ -22,6 +22,7 @@ import { useContext, useEffect } from "react";
 import { readUser } from "@/app/api";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import { readUserInfo } from "@/utils/sinutil";
+import { useRouter } from "next/navigation";
 
 const ConnectButton = (props: any) => {
   const { children, href, className, active } = props;
@@ -30,6 +31,8 @@ const ConnectButton = (props: any) => {
     useWallet();
   const { walletAddress, setWalletAddress } = useWalletAddress();
   const { userInfo, setUserInfo } = useUserInfo();
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetch = async () => {
@@ -109,17 +112,39 @@ const ConnectButton = (props: any) => {
                     }}
                   />
                 </DropdownItem>
-                <DropdownItem key="dashboard" textValue="dashboard">
-                  <Link href={"/blog/list"}>Dashboard</Link>
+                <DropdownItem
+                  key="dashboard"
+                  textValue="dashboard"
+                  onClick={() => {
+                    router.push("/blog/list");
+                  }}
+                >
+                  Dashboard
                 </DropdownItem>
-                <DropdownItem key="wordeets" textValue="wordeets">
-                  <Link href={"/wordeets/"}>Wordeets</Link>
+                <DropdownItem
+                  key="wordeets"
+                  textValue="wordeets"
+                  onClick={() => {
+                    router.push("/wordeets/");
+                  }}
+                >
+                  Wordeets
                 </DropdownItem>
-                <DropdownItem key="profiles" textValue="profiles">
-                  <Link href={`/profile/${walletAddress}`}>Profile</Link>
+                <DropdownItem
+                  key="profiles"
+                  textValue="profiles"
+                  href={`/profile/${walletAddress}`}
+                >
+                  Profile
                 </DropdownItem>
-                <DropdownItem key="Write" textValue="Write">
-                  <Link href={"/blog/new"}>Write</Link>
+                <DropdownItem
+                  key="Write"
+                  textValue="Write"
+                  onClick={() => {
+                    router.push("/blog/new");
+                  }}
+                >
+                  Write
                 </DropdownItem>
               </DropdownSection>
 

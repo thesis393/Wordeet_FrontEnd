@@ -134,7 +134,7 @@ const ReadTipTap = ({ onChange, content }: any) => {
   });
 
   return (
-    <div className="editor-container">
+    <div className="reader-container">
       {/* <Toolbar editor={editor} content={content} /> */}
       <EditorContent className="editor" editor={editor} />
     </div>

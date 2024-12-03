@@ -12,7 +12,7 @@ const Layout = (props: any) => {
         <Navbar />
       </div>
       <div className="flex-1 mx-auto px-4 sm:px-0 w-full">
-        <div className="flex flex-col justify-center items-center mx-auto xl:w-10/12">
+        <div className="flex flex-col justify-center items-center mx-auto xl:w-11/12 2xl:w-10/12">
           {children}
         </div>
       </div>

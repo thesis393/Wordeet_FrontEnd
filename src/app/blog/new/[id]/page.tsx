@@ -29,31 +29,6 @@ export default function NewBlog() {
 
   const params = useParams();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const id = params.id;
-  //     if (id !== undefined) {
-  //       try {
-  //         const result = await getBlog(id);
-  //         if (result) {
-  //           setBlog(result as Article_);
-  //           console.log("User get blog", result);
-  //           setTitle(result?.blog?.title);
-  //           setContent(result?.blog?.content);
-  //           setCoverImage(result?.blog?.coverimage);
-  //           console.log("content 1", content);
-  //         }
-  //       } catch (error) {
-  //         console.error("Error get blog", error);
-  //       }
-  //     }
-  //   };
-  //   if (params) {
-  //     fetchData();
-  //     console.log("start 1");
-  //   }
-  // }, [params]);
-
   useEffect(() => {
     setTitle(draftBlogInfo?.title);
     setContent(draftBlogInfo?.content);

@@ -69,23 +69,6 @@ export default function NewBlog() {
       return;
     }
 
-    // if (nStatus) {
-    //   const data = images.length > 0 ? images[0].file : null;
-    //   const imgData = new FormData();
-    //   imgData.append("file", data);
-    //   console.log("handlePost result", data);
-    //   const uploadResult = await uploadDataIrys(
-    //     data,
-    //     title,
-    //     content,
-    //     keywords,
-    //     walletAddress,
-    //     nStatus,
-    //     false
-    //   );
-    //   console.log(uploadResult.message, uploadResult.url);
-    // }
-
     try {
       const coverimage = await uploadImage();
       const result = postBlog(
@@ -111,11 +94,11 @@ export default function NewBlog() {
 
   return (
     <WriteLayout>
-      <div className="flex flex-col flex-1 justify-between shadow-[4px_2px_12px_0_rgba(0,0,0,0.1)] mx-auto px-4 py-8 rounded-b-lg container">
-        <div className="flex-1 mt-12">
+      <div className="flex flex-col flex-1 justify-between shadow-[4px_2px_12px_0_rgba(0,0,0,0.1)] rounded-b-lg">
+        <div className="flex-1">
           <Tiptap content={content} onChange={handleContentChange} />
         </div>
-        <div className="bottom-5 sticky mt-12">
+        <div className="bottom-5 sticky">
           <div className="flex flex-raw justify-center gap-9">
             <Button
               color="success"

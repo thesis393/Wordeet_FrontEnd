@@ -27,6 +27,7 @@ import { faFeather, faGem, faRibbon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BlogCard from "@/components/card/blogs";
 import { param } from "framer-motion/client";
+import { userInfo } from "os";
 
 export default function OtherProfile() {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -62,7 +63,7 @@ export default function OtherProfile() {
             }
           }
         } catch (error) {
-          console.error("readUserInfo get error: ", error);
+          console.log("readUserInfo get error: ", error);
         }
       }
     };
@@ -87,9 +88,25 @@ export default function OtherProfile() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    readUserInfo(tempuserInfo?.user?.walletaddress);
+  const closeModal = async () => {
     setIsModalOpen(false);
+    try {
+      const result = await readUserInfo(tempuserInfo?.user?.walletaddress);
+      if (result) {
+        console.log(
+          tempuserInfo?.user?.walletaddress,
+          "'s User Info step 1",
+          result
+        );
+        setTempUserInfo(result);
+        console.log("step 2", walletAddress, tempuserInfo?.user?.walletaddress);
+        if (tempuserInfo?.user?.walletaddress == walletAddress) {
+          setUserInfo(tempuserInfo.user);
+        }
+      }
+    } catch (error) {
+      console.log("readUserInfo get error: ", error);
+    }
   };
 
   useEffect(() => {
@@ -224,7 +241,7 @@ export default function OtherProfile() {
                       </div>
                     }
                   >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                       {tempuserInfo?.blogs?.created?.data.map(
                         (article: IBlogCard, idx: number) => (
                           <BlogCard
@@ -248,7 +265,7 @@ export default function OtherProfile() {
                       </div>
                     }
                   >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                       {tempuserInfo?.blogs?.collected?.data.map(
                         (article: IBlogCard, idx: number) => (
                           <BlogCard
@@ -272,7 +289,7 @@ export default function OtherProfile() {
                       </div>
                     }
                   >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                       {tempuserInfo?.blogs?.drafts?.data.map(
                         (article: IBlogCard, idx: number) => (
                           <BlogCard

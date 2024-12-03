@@ -1,5 +1,5 @@
 // EditProfileModal.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Modal,
@@ -9,6 +9,7 @@ import {
   Avatar,
   ModalContent,
   Card,
+  user,
 } from "@nextui-org/react";
 import ReactImageUploading from "react-images-uploading";
 import { useWalletAddress } from "@/provider/AppWalletProvider";
@@ -56,28 +57,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     console.log("Authorize on Twitter");
   };
 
-  // const uploadImage = async () => {
-  //   const data = images.length > 0 ? images[0].file : null;
-  //   const imgData = new FormData();
-  //   imgData.append("file", data);
-  //   console.log("result", data);
-
-  //   const imgRes = await fetch(
-  //     "https://api.pinata.cloud/pinning/pinFileToIPFS",
-  //     {
-  //       method: "POST",
-  //       headers: {
-  //         Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-  //       },
-  //       body: imgData,
-  //     }
-  //   );
-
-  //   const imgJsonData = await imgRes.json();
-  //   console.log("result", imgJsonData);
-  //   return imgJsonData.IpfsHash;
-  // };
-
   const handleImageUpload = async (
     file: File
   ): Promise<{ url: string; message: string }> => {
@@ -106,16 +85,21 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
+    let avatarUrl = "";
     console.log("image", images.length);
+
     if (!images.length) {
-      toast.error(`Select Image`);
-      return false;
+      // toast.error(`Select Image`);
+      if (userInfo?.avatar.length > 0) avatarUrl = `${userInfo?.avatar}`;
+    } else {
+      const avatar = await handleImageUpload(images[0].file);
+      avatarUrl = avatar.url;
     }
-    const avatar = await handleImageUpload(images[0].file);
+
     if (`${userInfo?._id}` == "undefined") {
       try {
         const result = createUser(
-          avatar.url,
+          avatarUrl,
           name,
           walletAddress,
           "http://x.com//bresin",
@@ -129,7 +113,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     } else {
       try {
         const result = updateUser(
-          avatar.url,
+          avatarUrl,
           name,
           walletAddress,
           "http://x.com//bresin",
@@ -144,6 +128,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     onClose();
     return;
   };
+
+  useEffect(() => {
+    console.log("EditProfileModal start", userInfo);
+    setName(`${userInfo?.username}`);
+    setBio(`${userInfo?.bio}`);
+    setExternalLink(`${userInfo?.externallink}`);
+    setBorder({ border: "success" });
+  }, [userInfo]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>

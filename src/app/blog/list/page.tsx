@@ -12,7 +12,7 @@ import { Image, Input } from "@nextui-org/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 
 import "swiper/css";
@@ -22,6 +22,7 @@ import useScreenWidth from "@/utils/screen";
 import Button from "@/components/button/default";
 import TrendBlogCard from "@/components/card/trendblogs";
 import "swiper/css/navigation";
+import SlideNextButton from "@/components/swiper/slidenextbtn";
 
 const BlogListPage = () => {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -63,10 +64,11 @@ const BlogListPage = () => {
 
   const [blog, setBlog] = useState<any>();
   const params = useParams();
+  const swiper = useSwiper();
   const getViewMoreBlogs = async () => {
     try {
       setIsViewMoreLoading(true);
-      const result = await getRecentBlogs(recentBlogsList.length, 3);
+      const result = await getRecentBlogs(recentBlogsList.length, 12);
       console.log("fetchRecentData", result);
 
       // Append the new blogs to the existing list
@@ -242,63 +244,61 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
 
   const screenWidth = useScreenWidth();
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-
   return (
     <>
       <Layout>
         {domLoaded && (
-          <div className="py-12 container">
-            <div className="mt-4">
-              <p className="text-2xl text-center"></p>
-              <div className="mt-2">
-                <Swiper
-                  rewind={true}
-                  navigation={true}
-                  modules={[Navigation]}
-                  className="trendBlog"
-                >
-                  {blogs.length === 0 ? (
-                    <SwiperSlide>
+          <div className="flex flex-col py-12 w-full">
+            <div className="mt-2">
+              <Swiper
+                // rewind={true}
+                // navigation={true}
+                // modules={[Navigation]}
+                pagination={{
+                  dynamicBullets: true,
+                }}
+                modules={[Pagination]}
+                className="trendBlog"
+              >
+                {blogs.length === 0 ? (
+                  <SwiperSlide>
+                    <TrendBlogCard
+                      title={articles[0].title}
+                      content={articles[0].content}
+                      createdAt={articles[0].createdAt}
+                      coverimage={articles[0].coverimage}
+                      _id={articles[0]._id}
+                      author={articles[0].author}
+                      status={articles[0].status}
+                      walletaddress={articles[0].walletaddress}
+                    />
+                  </SwiperSlide>
+                ) : (
+                  blogs.map((blog: any, idx: number) => (
+                    <SwiperSlide key={idx}>
                       <TrendBlogCard
-                        title={articles[0].title}
-                        content={articles[0].content}
-                        createdAt={articles[0].createdAt}
-                        coverimage={articles[0].coverimage}
-                        _id={articles[0]._id}
-                        author={articles[0].author}
-                        status={articles[0].status}
-                        walletaddress={articles[0].walletaddress}
+                        title={blog?.title}
+                        content={blog.content}
+                        createdAt={blog.createdAt}
+                        coverimage={blog.coverimage}
+                        _id={blog._id}
+                        author={blog.author}
+                        status={blog.status}
+                        walletaddress={blog.walletaddress}
+                        collectorInfos={blog.collectorInfos}
+                        nTotalCollecter={blog.nTotalCollecter}
+                        key={idx}
                       />
                     </SwiperSlide>
-                  ) : (
-                    blogs.map((blog: any, idx: number) => (
-                      <SwiperSlide key={idx}>
-                        <TrendBlogCard
-                          title={blog?.title}
-                          content={blog.content}
-                          createdAt={blog.createdAt}
-                          coverimage={blog.coverimage}
-                          _id={blog._id}
-                          author={blog.author}
-                          status={blog.status}
-                          walletaddress={blog.walletaddress}
-                          collectorInfos={blog.collectorInfos}
-                          nTotalCollecter={blog.nTotalCollecter}
-                          key={idx}
-                        />
-                      </SwiperSlide>
-                    ))
-                  )}
-                </Swiper>
-              </div>
+                  ))
+                )}
+              </Swiper>
             </div>
 
             <div className="mt-10">
               <p className="text-2xl text-center">Latest articles</p>
               <div className="">
-                <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                   {recentBlogsList.length &&
                     recentBlogsList.map((article, idx: number) => (
                       <BlogCard {...article} key={idx} />

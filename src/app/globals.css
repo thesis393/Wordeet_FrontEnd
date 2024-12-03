@@ -58,3 +58,13 @@ body {
   position: sticky;
   top: 0;
 }
+
+.writer-container{
+  width: 100vw;
+  padding: 0 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  color: var(--textColor);
+}

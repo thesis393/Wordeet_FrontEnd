@@ -20,21 +20,10 @@ const Navbar = (props: any) => {
     },
   ];
 
-  // const menu2 = [
-  //   {
-  //     title: "Create Articles",
-  //     path: "/blog/new",
-  //   },
-  //   {
-  //     title: "Profile",
-  //     path: "/profile",
-  //   },
-  // ];
-
   const pathName = usePathname();
 
   return (
-    <div className="flex justify-between items-center mx-auto px-2 md:px-10 xl:px-20 py-2 md:py-4 2xl:max-w-screen-2xl xl:max-w-screen-xl main-header">
+    <div className="flex justify-between items-center mx-auto px-2 md:px-5 xl:px-10 py-2 md:py-4 2xl:max-w-screen-2xl xl:max-w-screen-xl main-header">
       <nav className="flex items-center gap-1 lg:gap-6 xl:gap-[38px]">
         <Link href={"/"}>
           {pathName === "/" ? (

@@ -127,7 +127,7 @@ export default function Wordeets() {
     <Layout>
       <div className="justify-center mt-4 w-full">
         <p className="mt-12 font-medium text-2xl text-center">Top Users</p>
-        <div className="justify-center gap-4 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] mt-2">
+        <div className="justify-center gap-4 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[70px] mt-2">
           {topUsers.map((user, idx) => (
             <UserCard user={user} key={idx} />
           ))}
@@ -135,7 +135,7 @@ export default function Wordeets() {
       </div>
       <div className="justify-center mt-10 w-full">
         <p className="mt-12 font-medium text-2xl text-center">Top Blogs</p>
-        <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+        <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[400px] mydiv">
           {blogs.map((blog: any, idx: number) => (
             <BlogCard
               title={blog?.title}

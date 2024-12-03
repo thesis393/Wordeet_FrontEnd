@@ -133,13 +133,9 @@ const Tiptap = ({ onChange, content }: any) => {
   });
 
   return (
-    <div className="relative editor-container">
-      <div className="z-20 fixed bg-white">
-        <Toolbar editor={editor} content={content} />
-      </div>
-      <div className="flex flex-1 mt-10">
-        <EditorContent className="editor" editor={editor} />
-      </div>
+    <div className="editor-container">
+      <Toolbar editor={editor} content={content} />
+      <EditorContent className="editor" editor={editor} />
     </div>
   );
 };

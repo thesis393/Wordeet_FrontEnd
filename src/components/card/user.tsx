@@ -7,7 +7,7 @@ const UserCard = ({ user }: any) => {
   console.log("user", user);
   return (
     <Card>
-      <CardBody className="flex gap-8">
+      <CardBody className="flex gap-8 overflow-hidden">
         <Link href={`/profile/${user?.walletaddress}`}>
           <div className="flex gap-8">
             <Avatar src={user?.avatar} alt={user?.username} className="" />

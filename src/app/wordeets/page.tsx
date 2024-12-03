@@ -5,24 +5,24 @@ import { Metadata } from "next";
 import { useEffect, useState } from "react";
 import { getTopCreators, getTrendingBlogs } from "../api";
 import BlogCard from "@/components/card/blogs";
-
-// export const metadata: Metadata = {
-//   title: "Wordeets",
-//   description: "Wordit Wordeets page.",
-// };
+import { useAppContext } from "@/provider/AppProvider";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 
 export default function Wordeets() {
   const [blogs, setBlogs] = useState<any[]>([]); // Array to store blogs
   const [limit, setLimit] = useState<number>(12); // Default limit
   const [topUsers, setTopUsers] = useState<any[]>([]); // Array to store blogs
   const [limitTop, setTopLimit] = useState<number>(12); // Default limit
+  const { setLoading } = useAppContext();
 
   useEffect(() => {
     const fetchTrendingBlogs = async () => {
+      setLoading(true);
       const blogsData = await getTrendingBlogs(limit);
       if (blogsData) {
         setBlogs(blogsData);
       }
+      setLoading(false);
     };
 
     fetchTrendingBlogs();
@@ -40,89 +40,6 @@ export default function Wordeets() {
     fetchTopUsers();
   }, []);
 
-  const users = [
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-    {
-      avatar:
-        "https://gateway.irys.xyz/GsZ8LiV1s2XJPUUfwCstR5T7fQfQkAFcMdaMHuUDyDpg",
-      username: "Yong",
-      walletaddress: "Dw1sXb4gMUGPDaLswvpjTz9p8XisRTmwGoY5KuWvdqRG",
-      twitterlink: "http://x.com//bresin",
-      externallink: "ekfjekjfkejfkejf",
-      bio: "djfkjekundefined",
-    },
-  ];
   return (
     <Layout>
       <div className="justify-center mt-4 w-full">

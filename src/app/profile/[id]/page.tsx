@@ -21,13 +21,14 @@ import { useEffect, useState } from "react";
 import { IBlogCard, readUser } from "../../api";
 import { useParams } from "next/navigation";
 import { readUserInfo } from "@/utils/sinutil";
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { faFeather, faGem, faRibbon } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BlogCard from "@/components/card/blogs";
 import { param } from "framer-motion/client";
 import { userInfo } from "os";
+import { useAppContext } from "@/provider/AppProvider";
+import { Flag } from "lucide-react";
 
 export default function OtherProfile() {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -35,6 +36,7 @@ export default function OtherProfile() {
   const [tempwalletAddress, SetTempWalletAddress] = useState<any>();
   const { walletAddress } = useWalletAddress();
   const { setUserInfo } = useUserInfo();
+  const { setLoading } = useAppContext();
 
   useEffect(() => {
     setDomLoaded(true);
@@ -49,6 +51,7 @@ export default function OtherProfile() {
         try {
           SetTempWalletAddress(id);
           console.log("step 1");
+          setLoading(true);
           const result = await readUserInfo(id);
           if (result) {
             console.log(id, "'s User Info step 1", result);
@@ -65,6 +68,7 @@ export default function OtherProfile() {
         } catch (error) {
           console.log("readUserInfo get error: ", error);
         }
+        setLoading(false);
       }
     };
     if (params) {

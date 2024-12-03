@@ -23,6 +23,7 @@ import Button from "@/components/button/default";
 import TrendBlogCard from "@/components/card/trendblogs";
 import "swiper/css/navigation";
 import SlideNextButton from "@/components/swiper/slidenextbtn";
+import { useAppContext } from "@/provider/AppProvider";
 
 const BlogListPage = () => {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -33,6 +34,7 @@ const BlogListPage = () => {
   const [isViewMoreLoading, setIsViewMoreLoading] = useState<boolean>(false);
   const [blogs, setBlogs] = useState<any[]>([]); // Array to store blogs
   const [limit, setLimit] = useState<number>(5); // Default limit
+  const { setLoading } = useAppContext();
 
   useEffect(() => {
     const fetchTrendingBlogs = async () => {
@@ -48,6 +50,7 @@ const BlogListPage = () => {
   useEffect(() => {
     setDomLoaded(true);
     const fetchRecentData = async () => {
+      setLoading(true);
       try {
         const result = await getRecentBlogs(0, 12);
         console.log("fetchRecentData", result);
@@ -58,6 +61,7 @@ const BlogListPage = () => {
       } finally {
         setIsLoading(false);
       }
+      setLoading(false);
     };
     fetchRecentData();
   }, []);

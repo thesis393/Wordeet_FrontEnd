@@ -264,7 +264,7 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
                 modules={[Pagination]}
                 className="trendBlog"
               >
-                {blogs.length === 0 ? (
+                {blogs?.length === 0 ? (
                   <SwiperSlide>
                     <TrendBlogCard
                       title={articles[0].title}
@@ -278,7 +278,7 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
                     />
                   </SwiperSlide>
                 ) : (
-                  blogs.map((blog: any, idx: number) => (
+                  blogs?.map((blog: any, idx: number) => (
                     <SwiperSlide key={idx}>
                       <TrendBlogCard
                         title={blog?.title}
@@ -303,8 +303,8 @@ So in a nutshell, GH achievments can significantly help your GH profile. They sp
               <p className="text-2xl text-center">Latest articles</p>
               <div className="">
                 <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                  {recentBlogsList.length &&
-                    recentBlogsList.map((article, idx: number) => (
+                  {recentBlogsList?.length &&
+                    recentBlogsList?.map((article, idx: number) => (
                       <BlogCard {...article} key={idx} />
                     ))}
                 </div>

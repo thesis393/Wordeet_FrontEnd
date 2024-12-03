@@ -17,27 +17,24 @@ export default function Wordeets() {
 
   useEffect(() => {
     const fetchTrendingBlogs = async () => {
-      setLoading(true);
+      console.log("wordeets getTrendingBlogs start");
       const blogsData = await getTrendingBlogs(limit);
       if (blogsData) {
         setBlogs(blogsData);
       }
-      setLoading(false);
     };
-
-    fetchTrendingBlogs();
-  }, []);
-
-  useEffect(() => {
     const fetchTopUsers = async () => {
+      console.log("wordeets getTopCreators start");
       const usersData = await getTopCreators(limit);
       if (usersData) {
         console.log("setTopUsers");
         setTopUsers(usersData);
       }
     };
-
+    setLoading(true);
+    fetchTrendingBlogs();
     fetchTopUsers();
+    setLoading(false);
   }, []);
 
   return (
@@ -56,15 +53,15 @@ export default function Wordeets() {
           {blogs.map((blog: any, idx: number) => (
             <BlogCard
               title={blog?.title}
-              content={blog.content}
-              createdAt={blog.createdAt}
-              coverimage={blog.coverimage}
-              _id={blog._id}
-              author={blog.author}
-              status={blog.status}
-              walletaddress={blog.walletaddress}
-              collectorInfos={blog.collectorInfos}
-              nTotalCollecter={blog.nTotalCollecter}
+              content={blog?.content}
+              createdAt={blog?.createdAt}
+              coverimage={blog?.coverimage}
+              _id={blog?._id}
+              author={blog?.author}
+              status={blog?.status}
+              walletaddress={blog?.walletaddress}
+              collectorInfos={blog?.collectorInfos}
+              nTotalCollecter={blog?.nTotalCollecter}
               key={idx}
             />
           ))}

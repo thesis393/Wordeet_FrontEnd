@@ -315,48 +315,61 @@ const BlogPage = () => {
             </div>
           </div>
           <div className="mt-10">
-            <div className="flex justify-between items-center felx-row">
-              <p className="text-2xl">
-                Check Out More Articles By {blog?.author?.username}
-              </p>
-              <div
-                className="text-4xl text-primary cursor-pointer"
-                onClick={() => {
-                  router.push(`/profile/${walletaddress}`);
-                }}
-              >
-                View All
-              </div>
-            </div>
-
-            <div className="">
-              <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_480px)))] grid-rows-[453px] mydiv">
-                {clientBlogs.map((article, idx: number) => (
-                  <ClientBlogs {...article} key={idx} />
-                ))}
-              </div>
-            </div>
+            {clientBlogs?.length ? (
+              <>
+                <div className="flex justify-between items-center felx-row">
+                  <p className="text-2xl">
+                    Check Out More Articles By {blog?.author?.username}
+                  </p>
+                  <div
+                    className="text-4xl text-primary cursor-pointer"
+                    onClick={() => {
+                      router.push(`/profile/${walletaddress}`);
+                    }}
+                  >
+                    View All
+                  </div>
+                </div>
+                <div className="">
+                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_480px)))] grid-rows-[453px] mydiv">
+                    {clientBlogs.map((article, idx: number) => (
+                      <ClientBlogs {...article} key={idx} />
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
           </div>
 
           <div className="mt-10">
-            <div className="flex flex-row justify-between cursor-pointer">
-              <p className="text-2xl">More Articles from Different Writes</p>
-              <div
-                className="text-4xl text-primary"
-                onClick={() => {
-                  router.push(`/blog/list`);
-                }}
-              >
-                View All
-              </div>
-            </div>
-            <div className="">
-              <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
-                {otherBlogs.map((article, idx: number) => (
-                  <BlogCard {...article} key={idx} />
-                ))}
-              </div>
-            </div>
+            {otherBlogs?.length ? (
+              <>
+                <div className="flex flex-row justify-between cursor-pointer">
+                  <p className="text-2xl">
+                    More Articles from Different Writes
+                  </p>
+                  <div
+                    className="text-4xl text-primary"
+                    onClick={() => {
+                      router.push(`/blog/list`);
+                    }}
+                  >
+                    View All
+                  </div>
+                </div>
+                <div className="">
+                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                    {otherBlogs.map((article, idx: number) => (
+                      <BlogCard {...article} key={idx} />
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       )}

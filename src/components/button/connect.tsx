@@ -67,11 +67,7 @@ const ConnectButton = (props: any) => {
                 isBordered
                 radius="sm"
                 color="success"
-                src={
-                  userInfo?.avatar
-                    ? `${userInfo?.avatar}`
-                    : "https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                }
+                src={userInfo?.avatar ? `${userInfo?.avatar}` : ``}
               />
             </DropdownTrigger>
             <DropdownMenu

@@ -30,7 +30,7 @@ export default function NewBlog() {
   };
 
   const openUploadBlogModal = () => {
-    console.log("openTipModal start");
+    console.log("openUploadBlogModal start");
     // handlePost(2);
     setIsUploadBlogModalOpen(true);
   };

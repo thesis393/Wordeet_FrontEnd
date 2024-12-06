@@ -9,7 +9,7 @@ import {
   Image,
   Slider,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   addCollector,
@@ -20,21 +20,32 @@ import {
   updateBlogNFTCollectionAddress,
 } from "@/app/api";
 import ReadTipTap from "../tiptap/readtiptap";
-import { useAppContext } from "@/provider/AppProvider";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { createNftCollection } from "@/utils/createnftcollectioni";
-import { mintNft } from "@/utils/createnft";
-import { useUserInfo } from "@/provider/UserInfoProvider";
 import { useRouter } from "next/navigation";
 import { useDraftBlogInfo } from "@/provider/DraftBlogProvider";
+import { createNftCollection } from "@/utils/createnftcollectioni";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { mintNft } from "@/utils/createnft";
+import { useUserInfo } from "@/provider/UserInfoProvider";
+import { useAppContext } from "@/provider/AppProvider";
 
-const TrendBlogCard = (props: IBlogCard) => {
+const WideBlogCard = (props: IBlogCard) => {
   const [liked, setLiked] = useState(false);
-
+  const [isMounted, setIsMounted] = useState(false); // Track mount state
+  const { setDraftBlogInfo } = useDraftBlogInfo();
+  const { userInfo } = useUserInfo();
   const { setLoading } = useAppContext();
   const wallet = useWallet();
-  const { userInfo } = useUserInfo();
-  const { setDraftBlogInfo } = useDraftBlogInfo();
+
+  const router = useRouter();
+
+  const handleRouter = () => {
+    if (props.status) {
+      router.push(`/blog/${props._id}`);
+    } else {
+      setDraftBlogInfo(props);
+      router.push(`/blog/new/${props._id}`);
+    }
+  };
 
   const fetchNFTCollectionAddress = async (
     blogId: string
@@ -120,16 +131,6 @@ const TrendBlogCard = (props: IBlogCard) => {
     }
     setLoading(false);
   };
-
-  const router = useRouter();
-  const handleRouter = () => {
-    if (props.status) {
-      router.push(`/blog/${props._id}`);
-    } else {
-      setDraftBlogInfo(props);
-      router.push(`/blog/new/${props._id}`);
-    }
-  };
   return (
     <div className="border-none rounded-lg w-full h-full">
       <div className="flex md:flex-row flex-col justify-between gap-5 w-full h-full">
@@ -175,7 +176,7 @@ const TrendBlogCard = (props: IBlogCard) => {
               </div>
             </div>
             <div className="flex flex-1 items-start w-full overflow-hidden">
-              <div className="flex flex-col gap-0 w-full max-h-[150px] overflow-hidden read-only">
+              <div className="flex flex-col gap-0 w-full max-h-[80px] overflow-hidden read-only">
                 <ReadTipTap content={props.content} />
               </div>
             </div>
@@ -219,4 +220,4 @@ const TrendBlogCard = (props: IBlogCard) => {
   );
 };
 
-export default TrendBlogCard;
+export default WideBlogCard;

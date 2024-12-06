@@ -21,7 +21,7 @@ import { Pagination } from "swiper/modules";
 
 import "swiper/css";
 import ArticleCard from "@/components/card/article";
-import BlogCard from "@/components/card/blogs";
+import BlogCard from "@/components/card/wideblogs";
 import useScreenWidth from "@/utils/screen";
 import ClientBlogs from "@/components/card/clientblogs";
 import CustomButton from "@/components/button/custombutton";

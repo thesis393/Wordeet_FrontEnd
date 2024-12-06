@@ -16,6 +16,7 @@ import { useWalletAddress } from "@/provider/AppWalletProvider";
 import { createUser, updateUser, uploadImageFile } from "@/app/api";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import toast, { Toaster } from "react-hot-toast";
+import { kMaxLength } from "buffer";
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,10 +38,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onClose,
 }) => {
   const { userInfo } = useUserInfo();
+  console.log("EditProfileModal start", userInfo);
 
-  const [name, setName] = useState(`${userInfo?.username}`);
-  const [bio, setBio] = useState(`${userInfo?.bio}`);
-  const [externalLink, setExternalLink] = useState(`${userInfo?.externallink}`);
+  const [name, setName] = useState(
+    `${userInfo?.username ? userInfo?.username : ``}`
+  );
+  const [bio, setBio] = useState(`${userInfo?.bio ? userInfo?.bio : ``}`); //
+  const [externalLink, setExternalLink] = useState(
+    `${userInfo?.externallink ? userInfo?.externallink : ``}`
+  );
 
   const [border, setBorder] = useState<Border>({ border: "success" });
 
@@ -130,10 +136,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   useEffect(() => {
-    console.log("EditProfileModal start", userInfo);
-    setName(`${userInfo?.username}`);
-    setBio(`${userInfo?.bio}`);
-    setExternalLink(`${userInfo?.externallink}`);
+    setName(`${userInfo?.username ? userInfo?.username : ``}`);
+    setBio(`${userInfo?.bio ? userInfo?.bio : ``}`);
+    setExternalLink(`${userInfo?.externallink ? userInfo?.externallink : ``}`);
     setBorder({ border: "success" });
   }, [userInfo]);
 

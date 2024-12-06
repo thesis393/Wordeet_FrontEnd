@@ -128,14 +128,10 @@ const ReadTipTap = ({ onChange, content }: any) => {
         return false;
       },
     },
-    // onUpdate: ({ editor }) => {
-    //   handleChange(editor.getHTML());
-    // },
   });
 
   return (
     <div className="reader-container">
-      {/* <Toolbar editor={editor} content={content} /> */}
       <EditorContent className="editor" editor={editor} />
     </div>
   );

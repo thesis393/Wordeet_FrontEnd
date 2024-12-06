@@ -4,6 +4,7 @@ import {
   Article,
   fetchBlog,
   getRecentBlogs,
+  getTopCreators,
   getTrendingBlogs,
   IBlogCard,
 } from "@/app/api";
@@ -14,11 +15,16 @@ import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
-import BlogCard from "@/components/card/blogs";
+import WideBlogCard from "@/components/card/wideblogs";
 import Button from "@/components/button/default";
 import TrendBlogCard from "@/components/card/trendblogs";
 import "swiper/css/navigation";
 import { useAppContext } from "@/provider/AppProvider";
+import { faL } from "@fortawesome/free-solid-svg-icons";
+import CategoryButton from "@/components/button/categorybtn";
+import PopularBlogCard from "@/components/card/popularblogs";
+import UserCard from "@/components/card/user";
+import TopCreaterCard from "@/components/card/topcreater";
 
 const BlogListPage = () => {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -30,22 +36,11 @@ const BlogListPage = () => {
   const [blogs, setBlogs] = useState<any[]>([]); // Array to store blogs
   const [limit, setLimit] = useState<number>(5); // Default limit
   const { setLoading } = useAppContext();
-
-  useEffect(() => {
-    const fetchTrendingBlogs = async () => {
-      const blogsData = await getTrendingBlogs(limit);
-      if (blogsData) {
-        setBlogs(blogsData);
-      }
-    };
-
-    fetchTrendingBlogs();
-  }, []);
+  const [topUsers, setTopUsers] = useState<any[]>([]); // Array to store blogs
 
   useEffect(() => {
     setDomLoaded(true);
     const fetchRecentData = async () => {
-      setLoading(true);
       try {
         const result = await getRecentBlogs(0, 12);
         console.log("fetchRecentData", result);
@@ -56,9 +51,27 @@ const BlogListPage = () => {
       } finally {
         setIsLoading(false);
       }
-      setLoading(false);
     };
+    const fetchTrendingBlogs = async () => {
+      const blogsData = await getTrendingBlogs(limit);
+      if (blogsData) {
+        setBlogs(blogsData);
+      }
+    };
+    const fetchTopUsers = async () => {
+      console.log("wordeets getTopCreators start");
+      const usersData = await getTopCreators(limit);
+      if (usersData) {
+        console.log("setTopUsers");
+        setTopUsers(usersData);
+      }
+    };
+
+    setLoading(true);
+    fetchTrendingBlogs();
     fetchRecentData();
+    fetchTopUsers();
+    setLoading(false);
   }, []);
 
   const [blog, setBlog] = useState<any>();
@@ -131,34 +144,92 @@ const BlogListPage = () => {
                 )}
               </Swiper>
             </div>
+            <div className="flex flex-col gap-10 mt-10">
+              <p className="text-2xl text-start">Popular Categories</p>
+              <div className="items-center gap-4 xl:gap-8 grid grid-cols-3 md:grid-cols-6">
+                <CategoryButton className="bg-pink-200">All</CategoryButton>
+                <CategoryButton className="bg-green-200">DeFi</CategoryButton>
+                <CategoryButton className="bg-purple-200">DePin</CategoryButton>
+                <CategoryButton className="bg-blue-200">DeSci</CategoryButton>
+                <CategoryButton className="bg-orange-200">DAO</CategoryButton>
+                <CategoryButton className="bg-yellow-200">NFT</CategoryButton>
+              </div>
+            </div>
 
-            <div className="mt-10">
-              {recentBlogsList?.length > 0 ? (
-                <>
-                  <p className="text-2xl text-center">Latest articles</p>
-                  <div className="">
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {recentBlogsList?.map((article, idx: number) => (
-                        <BlogCard {...article} key={idx} />
-                      ))}
+            <div className="flex lg:flex-row gap-8 mt-10">
+              <div className="lg:basis-2/3 lg:flex-shrink-0">
+                {recentBlogsList?.length > 0 ? (
+                  <>
+                    <p className="text-2xl text-start">Recent Posts</p>
+                    <div className="mt-10">
+                      <div className="flex flex-col gap-8">
+                        {recentBlogsList?.map((article, idx: number) => (
+                          <WideBlogCard {...article} key={idx} />
+                        ))}
+                      </div>
                     </div>
+                  </>
+                ) : (
+                  <></>
+                )}
+              </div>
+              <div className="lg:flex flex-col hidden lg:basis-1/3">
+                {recentBlogsList?.length > 0 ? (
+                  <>
+                    <p className="text-2xl text-start">Most Popular</p>
+                    <div className="mt-10">
+                      <div className="flex gap-8 grid felx-col">
+                        {blogs?.map((article, idx: number) => (
+                          <PopularBlogCard {...article} key={idx} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex justify-center mt-5">
+                      {recentBlogsList?.length < totalBlogs && (
+                        <Button
+                          onClick={getViewMoreBlogs}
+                          style={"white"}
+                          className="mt-2"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? "Loading..." : "View More"}
+                        </Button>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <></>
+                )}
+                <div className="mt-10">
+                  <p className="text-2xl text-start">Categories</p>
+                  <div className="items-center gap-4 xl:gap-8 grid grid-cols-3 mt-10">
+                    <CategoryButton className="bg-pink-200">All</CategoryButton>
+                    <CategoryButton className="bg-green-200">
+                      DeFi
+                    </CategoryButton>
+                    <CategoryButton className="bg-purple-200">
+                      DePin
+                    </CategoryButton>
+                    <CategoryButton className="bg-blue-200">
+                      DeSci
+                    </CategoryButton>
+                    <CategoryButton className="bg-orange-200">
+                      DAO
+                    </CategoryButton>
+                    <CategoryButton className="bg-yellow-200">
+                      NFT
+                    </CategoryButton>
                   </div>
-                  <div className="flex justify-center mt-5">
-                    {recentBlogsList?.length < totalBlogs && (
-                      <Button
-                        onClick={getViewMoreBlogs}
-                        style={"white"}
-                        className="mt-2"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Loading..." : "View More"}
-                      </Button>
-                    )}
+                </div>
+                <div className="mt-10">
+                  <p className="text-2xl text-start">Top Creaters</p>
+                  <div className="flex flex-col gap-5 mt-10">
+                    {topUsers.map((user, idx) => (
+                      <TopCreaterCard user={user} key={idx} />
+                    ))}
                   </div>
-                </>
-              ) : (
-                <></>
-              )}
+                </div>
+              </div>
             </div>
           </div>
         )}

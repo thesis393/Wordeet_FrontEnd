@@ -59,7 +59,7 @@ body {
   top: 0;
 }
 
-.writer-container{
+.writer-container {
   width: 100vw;
   padding: 0 2rem;
   box-sizing: border-box;
@@ -67,4 +67,8 @@ body {
   flex-direction: column;
   background-color: var(--bg);
   color: var(--textColor);
+}
+
+.line-break-anywhere {
+  line-break: anywhere;
 }

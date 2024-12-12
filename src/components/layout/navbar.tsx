@@ -7,9 +7,24 @@ import { usePathname, useRouter } from "next/navigation";
 import ConnectButton from "../button/connect";
 import { Input } from "@nextui-org/react";
 import { SearchIcon } from "lucide-react";
+import { useState } from "react";
 
 const Navbar = (props: any) => {
   const { children } = props;
+  const [query, setQuery] = useState("");
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      console.log("Searching for:", query);
+      // Add your search logic here, such as API call or state update
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const menu1 = [
     {
@@ -70,6 +85,8 @@ const Navbar = (props: any) => {
             ],
           }}
           placeholder="Type to search..."
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown} // Add the event handler here
           startContent={
             <SearchIcon className="flex-shrink-0 mb-0.5 text-black/50 text-slate-400 dark:text-white/90 pointer-events-none" />
           }

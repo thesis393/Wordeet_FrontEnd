@@ -606,3 +606,21 @@ export const getTopCreators = async (limit: number) => {
     return null; // In case of an error, return null or handle error appropriately
   }
 };
+
+export const searchBlogsByText = async (searchText: string) => {
+  try {
+    console.log(`Searching blogs with text: "${searchText}"`);
+
+    // Send POST request to fetch matching blogs
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}api/blog/searchBlogs`,
+      { searchText }
+    );
+
+    console.log("Blogs fetched successfully:", response.data);
+    return response.data.blogs; // Assuming the response contains a 'blogs' array
+  } catch (error) {
+    console.error("Error searching blogs:", error);
+    return null; // Return null or handle error appropriately
+  }
+};

@@ -185,7 +185,7 @@ const TrendBlogCard = (props: IBlogCard) => {
               Read More
             </Button>
           </div>
-          <div className="flex flex-col w-full bais-1/6">
+          <div className="flex flex-col pr-5 w-full bais-1/6">
             <div className="flex justify-between items-center gap-2 w-full">
               <AvatarGroup
                 isBordered

@@ -13,7 +13,7 @@ import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-ad
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { uploadSingleDataIrys } from "@/app/api";
 
-const connection = new Connection("https://devnet.helius-rpc.com/?api-key=86ceda5c-d0c6-48f9-8b29-e79b81bbbc1e");
+const connection = new Connection("https://api.devnet.solana.com");
 
 
 export const createNftCollection = async (collectionData: any, wallet: WalletContextState): Promise<any> => {

@@ -14,7 +14,7 @@ import {
 import * as splToken from '@solana/spl-token';
 
 const SOLANA_DEVNET_USDC_PUBKEY =
-	'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+	'4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
 
 const headers = createActionHeaders();
 
@@ -194,7 +194,7 @@ export const POST = async (req: Request) => {
 
 function validatedQueryParams(requestUrl: URL) {
 	let toPubkey: PublicKey = new PublicKey(
-		'FWXHZxDocgchBjADAxSuyPCVhh6fNLT7DUggabAsuz1y',
+		'EgBcC7KVQTh1QeU3qxCFsnwZKYMMQkv6TzgEDkKvSNLv',
 	);
 	let amount: number = 10;
 

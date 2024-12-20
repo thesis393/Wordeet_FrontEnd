@@ -12,6 +12,9 @@ import {
   Checkbox,
   Input,
   Link,
+  Card,
+  CardHeader,
+  CardBody,
 } from "@nextui-org/react";
 import ReactImageUploading from "react-images-uploading";
 import { useWalletAddress } from "@/provider/AppWalletProvider";
@@ -21,6 +24,7 @@ import { CoinsIcon } from "lucide-react";
 import { transferUSDC } from "@/utils/tokentransfer";
 import { useWallet } from "@solana/wallet-adapter-react";
 import toast, { Toaster } from "react-hot-toast";
+import { SolanaQRCode } from "../qr-code";
 
 interface TipModalProps {
   isOpen: boolean;
@@ -33,6 +37,11 @@ const TipModal: React.FC<TipModalProps> = ({ isOpen, onClose, DesPubKey }) => {
   const { userInfo } = useUserInfo();
   const { walletAddress } = useWalletAddress();
   const { onOpenChange } = useDisclosure();
+  const apiPath = "/api/actions/donate-spl";
+
+  const apiEndpoint =
+    new URL(apiPath, window.location.href).toString() + `?to=${DesPubKey}`;
+  console.log("aniEndpoint", apiEndpoint);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -82,14 +91,51 @@ const TipModal: React.FC<TipModalProps> = ({ isOpen, onClose, DesPubKey }) => {
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">Tip</ModalHeader>
+            <ModalHeader className="flex flex-row gap-1">
+              Donate USDC to Creators
+              <CoinsIcon />
+            </ModalHeader>
             <ModalBody>
               <Input
+                label="Price"
                 type="number"
                 min={0}
                 value={tip}
                 onChange={handleChange}
+                placeholder="0.00"
+                labelPlacement="outside"
+                endContent={
+                  <div className="flex items-center pointer-events-none">
+                    <span className="text-default-400 text-small">
+                      <CoinsIcon />
+                    </span>
+                  </div>
+                }
               />
+
+              <Card className="flex justify-center items-center group-hover:border-primary mx-auto rounded w-min text-center overflow-hidden size-[400px]">
+                <SolanaQRCode
+                  url={`${apiPath}?validator=${DesPubKey}`}
+                  color="white"
+                  background="black"
+                  size={400}
+                  className="rounded-lg min-w-[400px] overflow-clip"
+                />
+              </Card>
+              <Card className="group-hover:border-primary">
+                <CardHeader>Action Endpoint</CardHeader>
+                <CardBody className="space-y-2">
+                  <p className="text-muted-foreground">
+                    <Link
+                      href={apiEndpoint}
+                      target="_blank"
+                      className="hover:text-primary underline line-break-anywhere"
+                    >
+                      {apiEndpoint}
+                    </Link>
+                  </p>
+                </CardBody>
+              </Card>
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="flat" onPress={onClose}>

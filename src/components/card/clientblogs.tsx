@@ -1,17 +1,49 @@
 "use client";
 
 import { Card, CardBody, Image, Slider } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../button/default";
 import Link from "next/link";
-import { formatDate, IBlogCard } from "@/app/api";
+import { formatDate, formatUnixTimestampToDate, NewArticle } from "@/app/api";
 import { useRouter } from "next/navigation";
 import ReadTipTap from "../tiptap/readtiptap";
+import useProgram from "@/app/anchor/config";
+import { PublicKey } from "@solana/web3.js";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
-const ClientBlogs = (props: IBlogCard) => {
+const ClientBlogs = (props: NewArticle) => {
   const [liked, setLiked] = useState(false);
+  const [writerProfile, setWriterProfile] = useState<any>({});
   const router = useRouter();
+  const program = useProgram();
 
+  useEffect(() => {
+    getWriterInfo();
+  }, []);
+
+  const getWriterInfo = async () => {
+    try {
+      const tempPubKey = new PublicKey(props.walletaddress);
+
+      if (program) {
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), tempPubKey.toBuffer()],
+          program.programId
+        );
+        const userProfile = await program.account.userProfile.fetch(userPda);
+        const formattedBlogs = {
+          avatar: userProfile.avatar,
+          username: userProfile.username,
+          walletaddress: userProfile.walletaddress,
+          createAt: userProfile.createdAt,
+        };
+        setWriterProfile(formattedBlogs);
+      }
+    } catch (error) {
+      console.log("getWriterInfo", error);
+    }
+  };
   return (
     <Card
       isBlurred
@@ -26,7 +58,11 @@ const ClientBlogs = (props: IBlogCard) => {
               className="object-cover"
               height={200}
               shadow="md"
-              src={`${props.coverimage}`}
+              src={`${
+                props.coverimage
+                  ? props.coverimage
+                  : "/assets/image/article/sui-network.webp"
+              }`}
               width="100%"
               onClick={() => router.push(`/blog/${props._id}`)}
             />
@@ -54,22 +90,24 @@ const ClientBlogs = (props: IBlogCard) => {
             <div className="flex justify-between items-center mt-4 w-full">
               <div className="flex justify-start items-center gap-2">
                 <Link
-                  href={`/profile/${props.author.walletaddress}`}
+                  href={`/profile/${writerProfile.walletaddress}`}
                   className="flex items-center gap-2"
                 >
                   <Image
-                    alt={props.author.username}
+                    alt={writerProfile.username}
                     className="rounded-full object-cover"
                     height={40}
                     shadow="md"
-                    src={`${props.author.avatar}`}
+                    src={`${writerProfile.avatar}`}
                     width="40"
                   />
-                  <p className="text-sm">{props.author.username}</p>
+                  <p className="text-sm">{props.username}</p>
                 </Link>
               </div>
               <div>
-                <p className="text-opacity-40">{formatDate(props.createdAt)}</p>
+                <p className="text-opacity-40">
+                  {formatUnixTimestampToDate(props.createdAt)}
+                </p>
               </div>
             </div>
             <div className="flex justify-center w-full">

@@ -13,7 +13,7 @@ import {
 } from "@solana/spl-token";
 
 // Use Devnet connection
-const connection = new Connection("https://api.devnet.solana.com");
+const connection = new Connection("https://devnet.helius-rpc.com/?api-key=926da061-472b-438a-bbb1-f289333c4126");
 
 // Devnet USDC Mint Address
 const USDC_MINT_ADDRESS = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");

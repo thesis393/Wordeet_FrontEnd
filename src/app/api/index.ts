@@ -34,6 +34,24 @@ export interface IBlogCard {
   }>;
 }
 
+export interface INewBlogCard {
+  _id: string;
+  authorAddress: string;
+  username: string;
+  coverimage: string;
+  category: string;
+  title: string;
+  content: string;
+  upvote: number;
+  downvote: number;
+  walletaddress: string;
+  nftcollectionaddress: string;
+  ntotalcollector: number;
+  lowercaseTitle: string;
+  status: number;
+  createdAt: number;
+}
+
 export interface IBlogResponse {
   blogs: IBlogCard[];
   totalCount: number;
@@ -59,6 +77,23 @@ export interface CollectorInfo {
   walletaddress: string;
   nftMintAddress: string;
   _id: string;
+}
+
+export interface NewArticle {
+  _id: string,
+  owner: string,
+  username: string,
+  coverimage: string,
+  category: string,
+  createdAt: number,
+  title: string,
+  content: string,
+  upvote: number,
+  downvote: number,
+  keywords: string,
+  walletaddress: string,
+  nftcollectionaddress: string,
+  ntotalcollector: number,
 }
 
 export interface Article_ {
@@ -312,6 +347,14 @@ export const formatDate = (isoString: string) => {
   const date = new Date(isoString);
   const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long" };
   return date.toLocaleDateString("en-US", options);
+};
+
+export const formatUnixTimestampToDate = (unixTimestamp: number): string => {
+  const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
+  const year = date.getFullYear(); // Full year (e.g., 2023)
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(date.getDate()).padStart(2, '0'); // Day of the month
+  return `${year}.${month}.${day}`;
 };
 
 export const getRecentBlogs = async (skip: number, limit: number): Promise<IBlogResponse> => {

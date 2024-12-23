@@ -8,15 +8,18 @@ import ConnectButton from "../button/connect";
 import { Input } from "@nextui-org/react";
 import { SearchIcon } from "lucide-react";
 import { useState } from "react";
+import { useSearchInfo } from "@/provider/SearchInfoProvider";
 
 const Navbar = (props: any) => {
   const { children } = props;
   const [query, setQuery] = useState("");
+  const { setSearchInfo } = useSearchInfo();
 
   const handleSearch = () => {
     if (query.trim()) {
       console.log("Searching for:", query);
       // Add your search logic here, such as API call or state update
+      setSearchInfo(query);
     }
   };
 

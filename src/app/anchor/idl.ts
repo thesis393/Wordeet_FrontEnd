@@ -54,11 +54,6 @@ export type WordeetContract = {
 					"isSigner": false
 				},
 				{
-					"name": "author",
-					"isMut": true,
-					"isSigner": true
-				},
-				{
 					"name": "owner",
 					"isMut": true,
 					"isSigner": true
@@ -84,28 +79,20 @@ export type WordeetContract = {
 					"type": "string"
 				},
 				{
+					"name": "content",
+					"type": "string"
+				},
+				{
+					"name": "category",
+					"type": "string"
+				},
+				{
 					"name": "keywords",
 					"type": "string"
 				},
 				{
 					"name": "walletaddress",
 					"type": "string"
-				},
-				{
-					"name": "status",
-					"type": "string"
-				},
-				{
-					"name": "bdelete",
-					"type": "bool"
-				},
-				{
-					"name": "nftcollectionaddress",
-					"type": "string"
-				},
-				{
-					"name": "ntotalcollecter",
-					"type": "u32"
 				}
 			]
 		},
@@ -183,11 +170,39 @@ export type WordeetContract = {
 					},
 					{
 						"name": "postCount",
-						"type": "u32"
+						"type": "u8"
 					},
 					{
 						"name": "createdAt",
 						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "collectorInfo",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "avatar",
+						"type": "string"
+					},
+					{
+						"name": "username",
+						"type": "string"
+					},
+					{
+						"name": "id",
+						"type": "string"
+					},
+					{
+						"name": "walletaddress",
+						"type": "string"
+					},
+					{
+						"name": "nftMintAddress",
+						"type": "string"
 					}
 				]
 			}
@@ -210,6 +225,22 @@ export type WordeetContract = {
 						"type": "string"
 					},
 					{
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"name": "category",
+						"type": "string"
+					},
+					{
+						"name": "upvote",
+						"type": "u32"
+					},
+					{
+						"name": "downvote",
+						"type": "u32"
+					},
+					{
 						"name": "keywords",
 						"type": "string"
 					},
@@ -219,11 +250,7 @@ export type WordeetContract = {
 					},
 					{
 						"name": "status",
-						"type": "string"
-					},
-					{
-						"name": "bdelete",
-						"type": "bool"
+						"type": "i32"
 					},
 					{
 						"name": "nftcollectionaddress",
@@ -326,11 +353,6 @@ export const IDL: WordeetContract = {
 					"isSigner": false
 				},
 				{
-					"name": "author",
-					"isMut": true,
-					"isSigner": true
-				},
-				{
 					"name": "owner",
 					"isMut": true,
 					"isSigner": true
@@ -356,28 +378,20 @@ export const IDL: WordeetContract = {
 					"type": "string"
 				},
 				{
+					"name": "content",
+					"type": "string"
+				},
+				{
+					"name": "category",
+					"type": "string"
+				},
+				{
 					"name": "keywords",
 					"type": "string"
 				},
 				{
 					"name": "walletaddress",
 					"type": "string"
-				},
-				{
-					"name": "status",
-					"type": "string"
-				},
-				{
-					"name": "bdelete",
-					"type": "bool"
-				},
-				{
-					"name": "nftcollectionaddress",
-					"type": "string"
-				},
-				{
-					"name": "ntotalcollecter",
-					"type": "u32"
 				}
 			]
 		},
@@ -455,11 +469,39 @@ export const IDL: WordeetContract = {
 					},
 					{
 						"name": "postCount",
-						"type": "u32"
+						"type": "u8"
 					},
 					{
 						"name": "createdAt",
 						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "collectorInfo",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "avatar",
+						"type": "string"
+					},
+					{
+						"name": "username",
+						"type": "string"
+					},
+					{
+						"name": "id",
+						"type": "string"
+					},
+					{
+						"name": "walletaddress",
+						"type": "string"
+					},
+					{
+						"name": "nftMintAddress",
+						"type": "string"
 					}
 				]
 			}
@@ -482,6 +524,22 @@ export const IDL: WordeetContract = {
 						"type": "string"
 					},
 					{
+						"name": "content",
+						"type": "string"
+					},
+					{
+						"name": "category",
+						"type": "string"
+					},
+					{
+						"name": "upvote",
+						"type": "u32"
+					},
+					{
+						"name": "downvote",
+						"type": "u32"
+					},
+					{
 						"name": "keywords",
 						"type": "string"
 					},
@@ -491,11 +549,7 @@ export const IDL: WordeetContract = {
 					},
 					{
 						"name": "status",
-						"type": "string"
-					},
-					{
-						"name": "bdelete",
-						"type": "bool"
+						"type": "i32"
 					},
 					{
 						"name": "nftcollectionaddress",

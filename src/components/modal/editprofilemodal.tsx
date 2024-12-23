@@ -17,6 +17,11 @@ import { createUser, updateUser, uploadImageFile } from "@/app/api";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import toast, { Toaster } from "react-hot-toast";
 import { kMaxLength } from "buffer";
+import useProgram from "@/app/anchor/config";
+import { string } from "@metaplex-foundation/umi/serializers";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { useWallet } from "@solana/wallet-adapter-react";
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -54,6 +59,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const { walletAddress } = useWalletAddress();
 
+  const { publicKey, disconnect, signTransaction, sendTransaction } =
+    useWallet();
+
+  const program = useProgram();
+
   const onChangeImage = (imageList: any, addUpdateIndex: number) => {
     setImages(imageList);
   };
@@ -85,6 +95,37 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
+  const editUserProfile = async (
+    avatar: string,
+    username: string,
+    twitterlink: string,
+    externallink: string,
+    bio: string
+  ) => {
+    if (program && userInfo && publicKey) {
+      try {
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), publicKey.toBuffer()],
+          program.programId
+        );
+
+        await program.methods
+          .editUserProfile(avatar, username, twitterlink, externallink, bio)
+          .accounts({
+            userProfile: userPda,
+            owner: publicKey,
+          })
+          .rpc();
+
+        return true;
+      } catch (error) {
+        console.log("editUserProfile Error editing profile:", error);
+        return false;
+      }
+    }
+    return false;
+  };
+
   const saveProfile = async () => {
     if (!walletAddress) {
       console.error("Wallet address is not connected");
@@ -102,37 +143,48 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       avatarUrl = avatar.url;
     }
 
-    if (`${userInfo?._id}` == "undefined") {
-      try {
-        const result = createUser(
-          avatarUrl,
-          name,
-          walletAddress,
-          "http://x.com//bresin",
-          externalLink,
-          bio
-        );
-        console.log("User created successfully", result);
-      } catch (error) {
-        console.error("Error create User", error);
-      }
-    } else {
-      try {
-        const result = updateUser(
-          avatarUrl,
-          name,
-          walletAddress,
-          "http://x.com//bresin",
-          externalLink,
-          bio
-        );
-        console.log("User updated successfully", result);
-      } catch (error) {
-        console.error("Error updated User", error);
-      }
-    }
+    const editStatus = await editUserProfile(
+      avatarUrl,
+      name,
+      "http://x.com//bresin",
+      externalLink,
+      bio
+    );
+
+    console.log("editUserProfile ", editStatus);
+
+    //backend way
+    // if (`${userInfo?._id}` == "undefined") {
+    //   try {
+    //     const result = createUser(
+    //       avatarUrl,
+    //       name,
+    //       walletAddress,
+    //       "http://x.com//bresin",
+    //       externalLink,
+    //       bio
+    //     );
+    //     console.log("User created successfully", result);
+    //   } catch (error) {
+    //     console.error("Error create User", error);
+    //   }
+    // } else {
+    //   try {
+    //     const result = updateUser(
+    //       avatarUrl,
+    //       name,
+    //       walletAddress,
+    //       "http://x.com//bresin",
+    //       externalLink,
+    //       bio
+    //     );
+    //     console.log("User updated successfully", result);
+    //   } catch (error) {
+    //     console.error("Error updated User", error);
+    //   }
+    // }
     onClose();
-    return;
+    return editStatus;
   };
 
   useEffect(() => {

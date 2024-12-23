@@ -9,12 +9,13 @@ import Text from "@tiptap/extension-text";
 import Tiptap from "@/components/tiptap/tiptap";
 import { useEffect, useState } from "react";
 import { Avatar, Button, Image, Input } from "@nextui-org/react";
-import { postBlog } from "@/app/api";
+import { postBlog, uploadImageFile } from "@/app/api";
 import { useWalletAddress } from "@/provider/AppWalletProvider";
 import ReactImageUploading from "react-images-uploading";
 import { CameraIcon, PrinterIcon, SaveIcon } from "lucide-react";
 import WriteLayout from "@/components/layout/writelayout";
 import UploadBlogModal from "@/components/modal/uploadblogmodal";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function NewBlog() {
   const [title, setTitle] = useState("");
@@ -31,7 +32,6 @@ export default function NewBlog() {
 
   const openUploadBlogModal = () => {
     console.log("openUploadBlogModal start");
-    // handlePost(2);
     setIsUploadBlogModalOpen(true);
   };
 
@@ -41,36 +41,15 @@ export default function NewBlog() {
 
   const { walletAddress } = useWalletAddress();
 
-  const uploadImage = async () => {
-    const data = images.length > 0 ? images[0].file : null;
-    const imgData = new FormData();
-    imgData.append("file", data);
-    console.log("result", data);
-
-    const imgRes = await fetch(
-      "https://api.pinata.cloud/pinning/pinFileToIPFS",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
-        },
-        body: imgData,
-      }
-    );
-
-    const imgJsonData = await imgRes.json();
-    console.log("result", imgJsonData);
-    return imgJsonData.IpfsHash;
-  };
-
-  const handlePost = async (nStatus: number) => {
+  const saveBlog = async () => {
     if (!walletAddress) {
       console.log("Wallet address is not connected");
       return;
     }
-
     try {
-      const coverimage = await uploadImage();
+      const coverimage = "";
+      const nStatus = 0;
+
       const result = postBlog(
         coverimage,
         title,
@@ -80,16 +59,16 @@ export default function NewBlog() {
         nStatus,
         false
       );
-      console.log("Blog posted successfully", result);
+      console.log("Blog saved successfully", result);
     } catch (error) {
       console.error("Error postin blog", error);
     }
   };
 
   useEffect(() => {
-    console.log("content", content);
-    console.log("title", title);
-    console.log("walletAddress", walletAddress);
+    // console.log("content", content);
+    // console.log("title", title);
+    // console.log("walletAddress", walletAddress);
   }, [content, title, walletAddress]);
 
   return (
@@ -104,7 +83,7 @@ export default function NewBlog() {
               color="success"
               variant="bordered"
               startContent={<SaveIcon />}
-              onClick={() => handlePost(0)}
+              onClick={() => saveBlog()}
             >
               Save Article
             </Button>
@@ -127,6 +106,7 @@ export default function NewBlog() {
         keywords={keywords}
         walletAddress={walletAddress}
       />
+      <Toaster />
     </WriteLayout>
   );
 }

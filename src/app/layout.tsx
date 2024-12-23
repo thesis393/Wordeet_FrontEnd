@@ -9,6 +9,7 @@ import UserInfoProvider from "@/provider/UserInfoProvider";
 import DraftBlogInfoProvider from "@/provider/DraftBlogProvider";
 import Loader from "@/components/loading/loader";
 import AppProvider from "@/provider/AppProvider";
+import SearchInfoProvider from "@/provider/SearchInfoProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -53,10 +54,12 @@ export default function RootLayout({
           <NextTopLoader />
           <NextUIProvider>
             <UserInfoProvider>
-              <AppProvider>
-                <DraftBlogInfoProvider>{children}</DraftBlogInfoProvider>
-                <Loader />
-              </AppProvider>
+              <SearchInfoProvider>
+                <AppProvider>
+                  <DraftBlogInfoProvider>{children}</DraftBlogInfoProvider>
+                  <Loader />
+                </AppProvider>
+              </SearchInfoProvider>
             </UserInfoProvider>
           </NextUIProvider>
         </AppWalletProvider>

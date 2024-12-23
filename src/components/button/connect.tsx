@@ -18,11 +18,16 @@ import {
 } from "@nextui-org/react";
 
 import Link from "next/link";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { readUser } from "@/app/api";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import { readUserInfo } from "@/utils/sinutil";
 import { useRouter } from "next/navigation";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import useProgram, { WORDEET_PROGRAM_ID } from "@/app/anchor/config";
+import { getPDA } from "@/app/anchor/script";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import * as web3 from "@solana/web3.js";
 
 const ConnectButton = (props: any) => {
   const { children, href, className, active } = props;
@@ -31,16 +36,83 @@ const ConnectButton = (props: any) => {
     useWallet();
   const { walletAddress, setWalletAddress } = useWalletAddress();
   const { userInfo, setUserInfo } = useUserInfo();
+  const [transactionPending, setTransactionPending] = useState(false);
+  const program = useProgram();
 
   const router = useRouter();
 
+  const sleep = async (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  const createUserProfile = async () => {
+    if (program && publicKey) {
+      try {
+        setTransactionPending(true);
+
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), publicKey.toBuffer()],
+          program.programId
+        );
+        const tx = await program.methods
+          .createUserProfile(publicKey.toBase58())
+          .accounts({
+            userProfile: userPda,
+            author: publicKey,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          .rpc();
+        console.log(`Transaction successful: ${tx}`);
+        setTransactionPending(false);
+        await sleep(2000);
+        getUserProfile();
+      } catch (error) {
+        console.error("Error initializing user:", error);
+        setTransactionPending(false);
+      }
+    }
+  };
+
+  const getUserProfile = async () => {
+    console.log("getUserProfile start", program, publicKey, transactionPending);
+    if (program && publicKey && !transactionPending) {
+      console.log("getUserProfile 2");
+      try {
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), publicKey.toBuffer()],
+          program.programId
+        );
+        console.log("getUserProfile 3");
+        const userProfile = await program.account.userProfile.fetch(userPda);
+
+        console.log("getUserProfile 4");
+        if (userProfile) {
+          console.log("readUserInfo: ", userProfile);
+          setUserInfo(userProfile);
+        } else {
+          console.log("getUserProfile 5");
+          await createUserProfile();
+        }
+      } catch (error) {
+        console.log("Error fetching profile account:", error);
+        await createUserProfile();
+      }
+    }
+  };
+
   useEffect(() => {
     const fetch = async () => {
-      setWalletAddress(publicKey?.toBase58());
-      const result = await readUserInfo(publicKey?.toBase58());
-      console.log("readUserInfo: ", result);
-      if (result != null) setUserInfo(result.user);
-      console.log("publickey changed", publicKey?.toBase58());
+      if (publicKey) {
+        setWalletAddress(publicKey?.toBase58());
+
+        //Smart Contract way
+        await getUserProfile();
+
+        //Backend way
+        // const result = await readUserInfo(publicKey?.toBase58());
+        // console.log("readUserInfo: ", result);
+        // if (result != null) setUserInfo(result.user);
+        // console.log("publickey changed", publicKey?.toBase58());
+      }
     };
     if (publicKey) {
       fetch();

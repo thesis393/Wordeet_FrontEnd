@@ -29,6 +29,10 @@ import { param } from "framer-motion/client";
 import { userInfo } from "os";
 import { useAppContext } from "@/provider/AppProvider";
 import { Flag } from "lucide-react";
+import useProgram from "@/app/anchor/config";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { PublicKey } from "@solana/web3.js";
 
 export default function OtherProfile() {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -37,12 +41,107 @@ export default function OtherProfile() {
   const { walletAddress } = useWalletAddress();
   const { setUserInfo } = useUserInfo();
   const { setLoading } = useAppContext();
+  const [createdBlogCnt, setCreatedBlogCnt] = useState(0);
+  const [collectedBlogCnt, setCollectedBlogCnt] = useState(0);
+  const [Draft, setDraftBlogCnt] = useState(0);
+  const [createdBlogs, setCreatedBlogs] = useState<any[]>([]);
+  const [collectedBlogs, setCollectedBlogs] = useState<any[]>([]);
+
+  const program = useProgram();
 
   useEffect(() => {
     setDomLoaded(true);
   }, []);
 
   const params = useParams();
+
+  const getUserProfileById = async (walletAddress: any) => {
+    console.log("getUserProfileById start", program, walletAddress);
+    if (program && walletAddress) {
+      console.log("getUserProfileById 2");
+      try {
+        const tempPubKey = new PublicKey(walletAddress);
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), tempPubKey.toBuffer()],
+          program.programId
+        );
+        console.log("getUserProfileById 3");
+        const userProfile = await program.account.userProfile.fetch(userPda);
+
+        console.log("getUserProfileById 4");
+        if (userProfile) {
+          console.log("readUserInfo: ", userProfile);
+          setTempUserInfo(userProfile);
+
+          if (userProfile.walletaddress == walletAddress) {
+            setUserInfo(userProfile);
+          }
+        } else {
+          console.log("getUserProfileById 5");
+        }
+      } catch (error) {
+        console.log("Error fetching profile account:", error);
+      }
+    }
+  };
+
+  //SmartContract Way
+  const getUserBlogsById = async (walletAddress: any) => {
+    try {
+      if (!program || !walletAddress) return;
+      const allBlogs = await program.account.blogPost.all();
+
+      // Map blog data to formatted posts
+      const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
+        _id: publicKey.toString(),
+        authorAddress: account.owner.toString(),
+        username: account.username,
+        coverimage: account.coverimage,
+        category: account.category,
+        createdAt: account.createdAt,
+        title: account.title,
+        content: account.content,
+        upvote: account.upvote,
+        downvote: account.downvote,
+        walletaddress: account.walletaddress,
+        nftcollectionaddress: account.nftcollectionaddress,
+        ntotalcollector: account.ntotalcollecter,
+        status: 1,
+        lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
+      }));
+
+      const createdBlogs = formattedBlogs.filter(
+        (blog) => blog.walletaddress === walletAddress
+      );
+      if (createdBlogs.length > 0) {
+        setCreatedBlogCnt(createdBlogs.length);
+        setCreatedBlogs(createdBlogs);
+      }
+
+      const allCollectedBlogs = await program.account.collectorInfo.all();
+
+      const formattedCollectedBlogs = allCollectedBlogs.map(
+        ({ publicKey, account }) => ({
+          _id: publicKey.toString(),
+          avatar: account.avatar,
+          username: account.username,
+          walletaddress: account.walletaddress,
+          nftMintAddress: account.nftMintAddress,
+        })
+      );
+
+      const collectedBlogs = formattedCollectedBlogs.filter(
+        (blog) => blog.walletaddress === walletAddress
+      );
+
+      if (collectedBlogs.length > 0) {
+        setCollectedBlogCnt(collectedBlogs.length);
+        setCollectedBlogs(collectedBlogs);
+      }
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,21 +151,27 @@ export default function OtherProfile() {
           SetTempWalletAddress(id);
           console.log("step 1");
           setLoading(true);
-          const result = await readUserInfo(id);
-          if (result) {
-            console.log(id, "'s User Info step 1", result);
-            setTempUserInfo(result);
-            console.log(
-              "step 2",
-              walletAddress,
-              tempuserInfo?.user?.walletaddress
-            );
-            if (tempuserInfo?.user?.walletaddress == walletAddress) {
-              setUserInfo(tempuserInfo.user);
-            }
-          }
+
+          //Smart contract Way
+          await getUserProfileById(id);
+          await getUserBlogsById(id);
+
+          //Backend Way
+          // const result = await readUserInfo(id);
+          // if (result) {
+          //   console.log(id, "'s User Info step 1", result);
+          //   setTempUserInfo(result);
+          //   console.log(
+          //     "step 2",
+          //     walletAddress,
+          //     tempuserInfo?.user?.walletaddress
+          //   );
+          //   if (tempuserInfo?.user?.walletaddress == walletAddress) {
+          //     setUserInfo(tempuserInfo.user);
+          //   }
+          // }
         } catch (error) {
-          console.log("readUserInfo get error: ", error);
+          console.log("getUserProfileById get error: ", error);
         }
         setLoading(false);
       }
@@ -94,23 +199,31 @@ export default function OtherProfile() {
 
   const closeModal = async () => {
     setIsModalOpen(false);
+
     try {
-      const result = await readUserInfo(tempuserInfo?.user?.walletaddress);
-      if (result) {
-        console.log(
-          tempuserInfo?.user?.walletaddress,
-          "'s User Info step 1",
-          result
-        );
-        setTempUserInfo(result);
-        console.log("step 2", walletAddress, tempuserInfo?.user?.walletaddress);
-        if (tempuserInfo?.user?.walletaddress == walletAddress) {
-          setUserInfo(tempuserInfo.user);
-        }
-      }
+      await getUserProfileById(tempuserInfo?.walletaddress);
     } catch (error) {
-      console.log("readUserInfo get error: ", error);
+      console.log("getUserProfileById get error: ", error);
     }
+
+    //Backend Way
+    // try {
+    //   const result = await readUserInfo(tempuserInfo?.user?.walletaddress);
+    //   if (result) {
+    //     console.log(
+    //       tempuserInfo?.user?.walletaddress,
+    //       "'s User Info step 1",
+    //       result
+    //     );
+    //     setTempUserInfo(result);
+    //     console.log("step 2", walletAddress, tempuserInfo?.user?.walletaddress);
+    //     if (tempuserInfo?.user?.walletaddress == walletAddress) {
+    //       setUserInfo(tempuserInfo.user);
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.log("readUserInfo get error: ", error);
+    // }
   };
 
   useEffect(() => {
@@ -128,11 +241,7 @@ export default function OtherProfile() {
                 {/* <!-- Avatar --> */}
                 {/* <div className="flex justify-center items-center bg-gray-500 rounded-full w-24 h-24 font-bold text-4xl text-white"> */}
                 <Avatar
-                  src={
-                    tempuserInfo?.user?.avatar
-                      ? `${tempuserInfo?.user?.avatar}`
-                      : ""
-                  }
+                  src={tempuserInfo?.avatar ? `${tempuserInfo?.avatar}` : ""}
                   className="w-28 h-28 text-large"
                 />
                 {/* <!-- Profile Details --> */}
@@ -152,7 +261,7 @@ export default function OtherProfile() {
 
                   <div className="flex items-center space-x-2 mt-1">
                     <span className="pr-1 text-2xl dark:text-white leading-tight">
-                      {tempuserInfo?.user?.username}
+                      {tempuserInfo?.username}
                       <span className="xs:inline-flex hidden text-2xl">
                         's&nbsp;
                       </span>
@@ -164,8 +273,8 @@ export default function OtherProfile() {
                   <div className="flex items-center space-x-2">
                     {/* Wallet Address */}
                     <p className="text-gray-500 text-sm">
-                      {tempuserInfo?.user.walletaddress?.slice(0, 4)}...
-                      {tempuserInfo?.user.walletaddress?.slice(-4)}
+                      {tempuserInfo?.walletaddress?.slice(0, 4)}...
+                      {tempuserInfo?.walletaddress?.slice(-4)}
                     </p>
 
                     {/* Copy Button */}
@@ -198,14 +307,14 @@ export default function OtherProfile() {
               <div className="flex items-center space-x-6 text-gray-500">
                 <div className="text-center">
                   <span className="block font-semibold text-lg">
-                    {tempuserInfo?.blogs?.created?.count}
+                    {createdBlogCnt}
                   </span>
                   <span className="text-sm">Created</span>
                 </div>
                 <div className="text-center">
                   <span className="block font-semibold text-lg">
                     {" "}
-                    {tempuserInfo?.blogs?.collected?.count}
+                    {collectedBlogCnt}
                   </span>
                   <span className="text-sm">Collected</span>
                 </div>
@@ -240,21 +349,15 @@ export default function OtherProfile() {
                         <FontAwesomeIcon icon={faFeather} />
                         <span>Created</span>
                         <Chip size="sm" variant="faded">
-                          {tempuserInfo?.blogs?.created?.count}
+                          {createdBlogCnt}
                         </Chip>
                       </div>
                     }
                   >
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {tempuserInfo?.blogs?.created?.data.map(
-                        (article: IBlogCard, idx: number) => (
-                          <BlogCard
-                            {...article}
-                            author={tempuserInfo?.user}
-                            key={idx}
-                          />
-                        )
-                      )}
+                      {createdBlogs.map((article: IBlogCard, idx: number) => (
+                        <BlogCard {...article} key={idx} />
+                      ))}
                     </div>
                   </Tab>
                   <Tab
@@ -264,21 +367,15 @@ export default function OtherProfile() {
                         <FontAwesomeIcon icon={faGem} />
                         <span>Collected</span>
                         <Chip size="sm" variant="faded">
-                          {tempuserInfo?.blogs?.collected?.count}
+                          {collectedBlogCnt}
                         </Chip>
                       </div>
                     }
                   >
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {tempuserInfo?.blogs?.collected?.data.map(
-                        (article: IBlogCard, idx: number) => (
-                          <BlogCard
-                            {...article}
-                            author={tempuserInfo?.user}
-                            key={idx}
-                          />
-                        )
-                      )}
+                      {collectedBlogs.map((article: IBlogCard, idx: number) => (
+                        <BlogCard {...article} key={idx} />
+                      ))}
                     </div>
                   </Tab>
                   <Tab
@@ -296,11 +393,7 @@ export default function OtherProfile() {
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                       {tempuserInfo?.blogs?.drafts?.data.map(
                         (article: IBlogCard, idx: number) => (
-                          <BlogCard
-                            {...article}
-                            author={tempuserInfo?.user}
-                            key={idx}
-                          />
+                          <BlogCard {...article} key={idx} />
                         )
                       )}
                     </div>

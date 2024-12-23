@@ -6,8 +6,9 @@ import Link from "next/link";
 import {
   addCollector,
   formatDate,
+  formatUnixTimestampToDate,
   getBlogNFTCollectionAddress,
-  IBlogCard,
+  INewBlogCard,
   statusText,
   updateBlogNFTCollectionAddress,
 } from "@/app/api";
@@ -19,16 +20,50 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { mintNft } from "@/utils/createnft";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import { useAppContext } from "@/provider/AppProvider";
+import useProgram from "@/app/anchor/config";
+import { PublicKey } from "@solana/web3.js";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
-const BlogCard = (props: IBlogCard) => {
+const BlogCard = (props: INewBlogCard) => {
   const [liked, setLiked] = useState(false);
   const [isMounted, setIsMounted] = useState(false); // Track mount state
+  const [writerProfile, setWriterProfile] = useState<any>({});
   const { setDraftBlogInfo } = useDraftBlogInfo();
   const { userInfo } = useUserInfo();
   const { setLoading } = useAppContext();
   const wallet = useWallet();
 
   const router = useRouter();
+
+  const program = useProgram();
+
+  useEffect(() => {
+    getWriterInfo();
+  }, []);
+
+  const getWriterInfo = async () => {
+    try {
+      const tempPubKey = new PublicKey(props.walletaddress);
+
+      if (program) {
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), tempPubKey.toBuffer()],
+          program.programId
+        );
+        const userProfile = await program.account.userProfile.fetch(userPda);
+        const formattedBlogs = {
+          avatar: userProfile.avatar,
+          username: userProfile.username,
+          walletaddress: userProfile.walletaddress,
+          createAt: userProfile.createdAt,
+        };
+        setWriterProfile(formattedBlogs);
+      }
+    } catch (error) {
+      console.log("getWriterInfo", error);
+    }
+  };
 
   const handleRouter = () => {
     if (props.status) {
@@ -137,7 +172,11 @@ const BlogCard = (props: IBlogCard) => {
               className="aspect-[2/1] object-cover"
               height="50%"
               shadow="md"
-              src={`${props.coverimage}`}
+              src={`${
+                props.coverimage
+                  ? props.coverimage
+                  : "/assets/image/article/sui-network.webp"
+              }`}
               width="100%"
               onClick={handleRouter}
               radius="none"
@@ -163,21 +202,21 @@ const BlogCard = (props: IBlogCard) => {
             <div className="flex justify-between items-center mt-4 w-full">
               <div className="flex justify-between items-center gap-2 w-full">
                 <Link
-                  href={`/profile/${props.author.walletaddress}`}
+                  href={`/profile/${writerProfile?.walletaddress}`}
                   className="flex items-center gap-2"
                 >
                   <Image
-                    alt={props.author.username}
+                    alt={writerProfile?.username}
                     className="rounded-full object-cover"
                     height={40}
                     shadow="md"
-                    src={`${props.author.avatar}`}
+                    src={`${writerProfile?.avatar}`}
                     width="40"
                   />
                   <div className="flex flex-col">
-                    <p className="text-sm">{props.author.username}</p>
+                    <p className="text-sm">{writerProfile?.username}</p>
                     <p className="text-black text-sm text-opacity-50">
-                      {formatDate(props.createdAt)}
+                      {formatUnixTimestampToDate(props.createdAt)}
                     </p>
                   </div>
                 </Link>

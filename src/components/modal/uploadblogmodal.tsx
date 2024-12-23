@@ -14,6 +14,8 @@ import {
   Link,
   Image,
   Textarea,
+  RadioGroup,
+  Radio,
 } from "@nextui-org/react";
 import ReactImageUploading from "react-images-uploading";
 import {
@@ -32,6 +34,11 @@ import toast, { Toaster } from "react-hot-toast";
 import crypto from "crypto";
 import { version } from "os";
 import bs58 from "bs58";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import useProgram from "@/app/anchor/config";
+import { PublicKey } from "@solana/web3.js";
+import * as web3 from "@solana/web3.js";
 
 interface UploadBlogModalProps {
   isOpen: boolean;
@@ -53,19 +60,22 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
   const { onOpenChange } = useDisclosure();
   const [images, setImages] = useState<any>([]);
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("de-fi");
   const [isSelected, setIsSelected] = React.useState(true);
   const wallet = useWallet();
+  const program = useProgram();
+  const [transactionPending, setTransactionPending] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    // Allow only numbers and ensure the value is greater than 0
-    if (/^\d*$/.test(inputValue)) {
-      const numericValue = parseInt(inputValue, 10);
-      if (isNaN(numericValue) || numericValue > 0) {
-        setTip(inputValue);
-      }
-    }
-  };
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const inputValue = e.target.value;
+  //   // Allow only numbers and ensure the value is greater than 0
+  //   if (/^\d*$/.test(inputValue)) {
+  //     const numericValue = parseInt(inputValue, 10);
+  //     if (isNaN(numericValue) || numericValue > 0) {
+  //       setTip(inputValue);
+  //     }
+  //   }
+  // };
 
   const handleImageUpload = async (
     file: File
@@ -113,6 +123,69 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
         signingKeyMessage: message,
         signingKey: signingKey,
       };
+    }
+  };
+
+  const postBlogByContract = async (
+    coverimage: string,
+    title: string,
+    content: string,
+    catecory: string,
+    keywords: string,
+    walletAddress: string
+  ) => {
+    console.log("getUserProfileById start", program, walletAddress);
+
+    if (walletAddress && program) {
+      try {
+        setTransactionPending(true);
+        const tempPubKey = new PublicKey(walletAddress);
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), tempPubKey.toBuffer()],
+          program.programId
+        );
+
+        console.log("USER PDA = " + userPda);
+        const userProfile = await program.account.userProfile.fetch(userPda);
+        console.log("USER Post Count = " + userProfile.postCount);
+
+        const [postPda] = findProgramAddressSync(
+          [
+            utf8.encode("post"),
+            tempPubKey.toBuffer(),
+            Uint8Array.from([userProfile.postCount]),
+          ],
+          program.programId
+        );
+        console.log("POST PDA= " + postPda);
+
+        await program.methods
+          .createBlogPost(
+            coverimage,
+            title,
+            content,
+            catecory,
+            keywords,
+            walletAddress
+          )
+          .accounts({
+            blogPost: postPda,
+            owner: tempPubKey,
+            userProfile: userPda,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          .rpc();
+
+        setTransactionPending(false);
+        console.log("Successfully Posted Blog");
+        return true;
+      } catch (error) {
+        setTransactionPending(false);
+        console.log(error);
+        return false;
+      }
+    } else {
+      return false;
     }
   };
 
@@ -190,17 +263,6 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
       if (isSelected) nStatus = 2;
 
       try {
-        const result = postBlog(
-          coverimage.url,
-          title,
-          contents,
-          keywords,
-          walletAddress,
-          nStatus,
-          false
-        );
-        console.log("Blog posted successfully", result);
-
         const uploadResult = await uploadDataIrys(
           coverimage.url,
           title,
@@ -212,7 +274,34 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
           blogData
         );
         console.log(uploadResult.message, uploadResult.url);
-        console.log("Blog posted successfully", uploadResult);
+        console.log("Blog upload Irys successfully", uploadResult);
+
+        if (uploadResult.url == `` || !uploadResult.url) {
+          toast.error(`Upload CoverImage faild:  ${uploadResult.message}`);
+          return false;
+        }
+        //Smart Contract Way
+        const result = postBlogByContract(
+          coverimage.url,
+          title,
+          uploadResult.url,
+          category,
+          keywords,
+          walletAddress
+        );
+
+        //Backend Way
+        // const result = postBlog(
+        //   coverimage.url,
+        //   title,
+        //   contents,
+        //   keywords,
+        //   walletAddress,
+        //   nStatus,
+        //   false
+        // );
+
+        console.log("Blog posted successfully", result);
       } catch (error) {
         console.error("Error postin blog", error);
       }
@@ -287,7 +376,7 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                 onValueChange={setTitle}
               />
               <div className="flex justify-between px-1 py-2">
-                <Checkbox
+                {/* <Checkbox
                   classNames={{
                     label: "text-small",
                   }}
@@ -296,7 +385,21 @@ const UploadBlogModal: React.FC<UploadBlogModalProps> = ({
                   onValueChange={setIsSelected}
                 >
                   Irys
-                </Checkbox>
+                </Checkbox> */}
+
+                <RadioGroup
+                  label="Select the category"
+                  orientation="horizontal"
+                  size="md"
+                  defaultValue={category}
+                  onValueChange={setCategory}
+                >
+                  <Radio value="de-fi">DeFi</Radio>
+                  <Radio value="de-pin">DePin</Radio>
+                  <Radio value="de-sci">DeSci</Radio>
+                  <Radio value="dao">DAO</Radio>
+                  <Radio value="nft">NFT</Radio>
+                </RadioGroup>
               </div>
             </ModalBody>
             <ModalFooter>

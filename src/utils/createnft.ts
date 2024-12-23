@@ -19,7 +19,7 @@ import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-ad
 import { burn, collectionAddress, create, createCollection, fetchAsset, fetchCollection, mplCore, removePlugin, update } from '@metaplex-foundation/mpl-core'
 import { uploadSingleDataIrys } from "@/app/api";
 
-const connection = new Connection("https://devnet.helius-rpc.com/?api-key=86ceda5c-d0c6-48f9-8b29-e79b81bbbc1e");
+const connection = new Connection("https://devnet.helius-rpc.com/?api-key=926da061-472b-438a-bbb1-f289333c4126");
 
 
 export const mintNft = async (nftData: any, wallet: WalletContextState, collectionAddress: any) => {

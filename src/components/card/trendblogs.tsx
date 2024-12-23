@@ -9,13 +9,14 @@ import {
   Image,
   Slider,
 } from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   addCollector,
   formatDate,
+  formatUnixTimestampToDate,
   getBlogNFTCollectionAddress,
-  IBlogCard,
+  INewBlogCard,
   statusText,
   updateBlogNFTCollectionAddress,
 } from "@/app/api";
@@ -27,14 +28,47 @@ import { mintNft } from "@/utils/createnft";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import { useRouter } from "next/navigation";
 import { useDraftBlogInfo } from "@/provider/DraftBlogProvider";
+import useProgram from "@/app/anchor/config";
+import { PublicKey } from "@solana/web3.js";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
-const TrendBlogCard = (props: IBlogCard) => {
+const TrendBlogCard = (props: INewBlogCard) => {
   const [liked, setLiked] = useState(false);
 
   const { setLoading } = useAppContext();
   const wallet = useWallet();
   const { userInfo } = useUserInfo();
   const { setDraftBlogInfo } = useDraftBlogInfo();
+  const program = useProgram();
+  const [writerProfile, setWriterProfile] = useState<any>({});
+
+  useEffect(() => {
+    getWriterInfo();
+  }, []);
+
+  const getWriterInfo = async () => {
+    try {
+      const tempPubKey = new PublicKey(props.walletaddress);
+
+      if (program) {
+        const [userPda] = findProgramAddressSync(
+          [utf8.encode("user"), tempPubKey.toBuffer()],
+          program.programId
+        );
+        const userProfile = await program.account.userProfile.fetch(userPda);
+        const formattedBlogs = {
+          avatar: userProfile.avatar,
+          username: userProfile.username,
+          walletaddress: userProfile.walletaddress,
+          createAt: userProfile.createdAt,
+        };
+        setWriterProfile(formattedBlogs);
+      }
+    } catch (error) {
+      console.log("getWriterInfo", error);
+    }
+  };
 
   const fetchNFTCollectionAddress = async (
     blogId: string
@@ -139,7 +173,11 @@ const TrendBlogCard = (props: IBlogCard) => {
             className="h-full aspect-[4/3] object-cover"
             height="100%"
             shadow="md"
-            src={`${props.coverimage}`}
+            src={`${
+              props.coverimage
+                ? props.coverimage
+                : "/assets/image/article/sui-network.webp"
+            }`}
             width="100%"
             onClick={handleRouter}
             radius="none"
@@ -148,20 +186,20 @@ const TrendBlogCard = (props: IBlogCard) => {
         <div className="relative flex flex-col flex-shrink-0 justify-between gap-3 px-5 py-5 line-break-anywhere basis-1/2">
           <div className="flex justify-between items-center gap-2 w-full">
             <Link
-              href={`/profile/${props.author.walletaddress}`}
+              href={`/profile/${writerProfile.walletaddress}`}
               className="flex items-center gap-2"
             >
               <Image
-                alt={props.author.username}
+                alt={writerProfile.username}
                 className="rounded-full object-cover"
                 height={20}
                 shadow="md"
-                src={`${props.author.avatar}`}
+                src={`${writerProfile.avatar}`}
                 width="20"
               />
-              <p className="text-sm">{props.author.username}</p>
+              <p className="text-sm">{writerProfile.username}</p>
               <p className="text-black text-sm text-opacity-50">
-                {formatDate(props.createdAt)}
+                {formatUnixTimestampToDate(props.createdAt)}
               </p>
             </Link>
           </div>
@@ -190,18 +228,18 @@ const TrendBlogCard = (props: IBlogCard) => {
               <AvatarGroup
                 isBordered
                 max={5}
-                total={props?.nTotalCollecter}
+                total={props?.ntotalcollector}
                 renderCount={(count) => (
                   <p className="font-medium text-foreground text-small ms-2">
                     {count} Collected
                   </p>
                 )}
               >
-                {props?.collectorInfos?.map((item: any, idx: number) => (
+                {/* {props?.collectorInfos?.map((item: any, idx: number) => (
                   <Link href={`/profile/${item.walletaddress}`} key={idx}>
                     <Avatar src={item?.avatar} size="sm" />
                   </Link>
-                ))}
+                ))} */}
               </AvatarGroup>
               <Button
                 radius="full"

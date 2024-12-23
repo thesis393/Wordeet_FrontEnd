@@ -25,54 +25,153 @@ import CategoryButton from "@/components/button/categorybtn";
 import PopularBlogCard from "@/components/card/popularblogs";
 import UserCard from "@/components/card/user";
 import TopCreaterCard from "@/components/card/topcreater";
+import useProgram from "@/app/anchor/config";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useSearchInfo } from "@/provider/SearchInfoProvider";
 
 const BlogListPage = () => {
   const [domLoaded, setDomLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [recentBlogsList, setRecentBlogsList] = useState<IBlogCard[]>([]);
+  // const [recentBlogsList, setRecentBlogsList] = useState<IBlogCard[]>([]);
+  const [recentBlogsList, setRecentBlogsList] = useState<any[]>([]);
   const [totalBlogs, setTotalBlogs] = useState<number>(0);
   const [isViewMoreLoading, setIsViewMoreLoading] = useState<boolean>(false);
   const [blogs, setBlogs] = useState<any[]>([]); // Array to store blogs
   const [limit, setLimit] = useState<number>(5); // Default limit
   const { setLoading } = useAppContext();
   const [topUsers, setTopUsers] = useState<any[]>([]); // Array to store blogs
+  const [nLimitRecentBlogs, setLimitRecentBlogs] = useState<number>(5);
+  const [nLimitTrendBlogs, setLimitTrendBlogs] = useState<number>(5);
+  const [nLimitTopUsers, setLimitTopUsers] = useState<number>(5);
+  const [allBlogsList, setAllBlogsList] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const { publicKey } = useWallet();
+  const { searchInfo } = useSearchInfo();
+
+  const program = useProgram();
 
   useEffect(() => {
     setDomLoaded(true);
-    const fetchRecentData = async () => {
+
+    //SmartContract Way
+    const fetchBlogs = async () => {
       try {
-        const result = await getRecentBlogs(0, 12);
-        console.log("fetchRecentData", result);
-        setRecentBlogsList(result.blogs); // Set blogs list
-        setTotalBlogs(result.totalCount); // Set total blogs count
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch blogs");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    const fetchTrendingBlogs = async () => {
-      const blogsData = await getTrendingBlogs(limit);
-      if (blogsData) {
-        setBlogs(blogsData);
-      }
-    };
-    const fetchTopUsers = async () => {
-      console.log("wordeets getTopCreators start");
-      const usersData = await getTopCreators(limit);
-      if (usersData) {
-        console.log("setTopUsers");
-        setTopUsers(usersData);
+        if (!program) return;
+        const allBlogs = await program.account.blogPost.all();
+
+        // Map blog data to formatted posts
+        const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
+          _id: publicKey.toString(),
+          authorAddress: account.owner.toString(),
+          username: account.username,
+          coverimage: account.coverimage,
+          category: account.category,
+          createdAt: account.createdAt,
+          title: account.title,
+          content: account.content,
+          upvote: account.upvote,
+          downvote: account.downvote,
+          walletaddress: account.walletaddress,
+          nftcollectionaddress: account.nftcollectionaddress,
+          ntotalcollector: account.ntotalcollecter,
+          status: 1,
+          lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
+        }));
+
+        // Sort blogs by creation date
+        const sortedBlogs = formattedBlogs.sort(
+          (a, b) => b.createdAt - a.createdAt
+        );
+
+        const trendBlogs = formattedBlogs
+          .slice()
+          .sort((a, b) => b.upvote - a.upvote)
+          .slice(0, nLimitTrendBlogs);
+
+        const allUsers = await program.account.userProfile.all();
+        const formattedUsers = allUsers.map(({ publicKey, account }) => ({
+          _id: publicKey.toString(),
+          username: account.username,
+          blogCount: account.postCount,
+          walletaddress: account.walletaddress,
+          avatar: account.avatar,
+        }));
+
+        const topUsers = formattedUsers
+          .slice()
+          .sort((a, b) => b.blogCount - a.blogCount)
+          .slice(0, nLimitTopUsers);
+
+        setTotalBlogs(sortedBlogs.length);
+        setAllBlogsList(sortedBlogs);
+        setRecentBlogsList(sortedBlogs.slice(0, nLimitRecentBlogs));
+        setBlogs(trendBlogs);
+        setTopUsers(formattedUsers);
+        console.log("Total Blogs Count:", sortedBlogs.length);
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
       }
     };
 
     setLoading(true);
-    fetchTrendingBlogs();
-    fetchRecentData();
-    fetchTopUsers();
+    fetchBlogs();
     setLoading(false);
+
+    //Backend Way
+    // const fetchRecentData = async () => {
+    //   try {
+    //     const result = await getRecentBlogs(0, 12);
+    //     console.log("fetchRecentData", result);
+    //     setRecentBlogsList(result.blogs); // Set blogs list
+    //     setTotalBlogs(result.totalCount); // Set total blogs count
+    //   } catch (err: any) {
+    //     setError(err.message || "Failed to fetch blogs");
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
+    // const fetchTrendingBlogs = async () => {
+    //   const blogsData = await getTrendingBlogs(limit);
+    //   if (blogsData) {
+    //     setBlogs(blogsData);
+    //   }
+    // };
+    // const fetchTopUsers = async () => {
+    //   console.log("wordeets getTopCreators start");
+    //   const usersData = await getTopCreators(limit);
+    //   if (usersData) {
+    //     console.log("setTopUsers");
+    //     setTopUsers(usersData);
+    //   }
+    // };
+
+    // setLoading(true);
+    // fetchTrendingBlogs();
+    // fetchRecentData();
+    // fetchTopUsers();
+    // setLoading(false);
   }, []);
+
+  useEffect(() => {
+    console.log(
+      "selectedCategory: ",
+      selectedCategory,
+      "searchInfo: ",
+      searchInfo
+    );
+    const filteredPosts = allBlogsList.filter(
+      (post) =>
+        (selectedCategory === "all" || post.category === selectedCategory) &&
+        (!searchInfo ||
+          post.title?.toLowerCase().includes(searchInfo?.toLowerCase()) ||
+          post.content?.toLowerCase().includes(searchInfo?.toLowerCase()))
+    );
+
+    console.log("filteredPosts", filteredPosts);
+    setRecentBlogsList(filteredPosts.slice(0, nLimitRecentBlogs));
+  }, [selectedCategory, searchInfo]);
 
   const [blog, setBlog] = useState<any>();
   const params = useParams();
@@ -126,19 +225,7 @@ const BlogListPage = () => {
                 ) : (
                   blogs?.map((blog: any, idx: number) => (
                     <SwiperSlide key={idx}>
-                      <TrendBlogCard
-                        title={blog?.title}
-                        content={blog.content}
-                        createdAt={blog.createdAt}
-                        coverimage={blog.coverimage}
-                        _id={blog._id}
-                        author={blog.author}
-                        status={blog.status}
-                        walletaddress={blog.walletaddress}
-                        collectorInfos={blog.collectorInfos}
-                        nTotalCollecter={blog.nTotalCollecter}
-                        key={idx}
-                      />
+                      <TrendBlogCard {...blog} key={idx} />
                     </SwiperSlide>
                   ))
                 )}
@@ -147,17 +234,47 @@ const BlogListPage = () => {
             <div className="flex flex-col gap-10 mt-10">
               <p className="text-2xl text-start">Popular Categories</p>
               <div className="items-center gap-4 xl:gap-8 grid grid-cols-3 md:grid-cols-6">
-                <CategoryButton className="bg-pink-200">All</CategoryButton>
-                <CategoryButton className="bg-green-200">DeFi</CategoryButton>
-                <CategoryButton className="bg-purple-200">DePin</CategoryButton>
-                <CategoryButton className="bg-blue-200">DeSci</CategoryButton>
-                <CategoryButton className="bg-orange-200">DAO</CategoryButton>
-                <CategoryButton className="bg-yellow-200">NFT</CategoryButton>
+                <CategoryButton
+                  className="bg-pink-200"
+                  onClick={() => setSelectedCategory("all")}
+                >
+                  All
+                </CategoryButton>
+                <CategoryButton
+                  className="bg-green-200"
+                  onClick={() => setSelectedCategory("defi")}
+                >
+                  DeFi
+                </CategoryButton>
+                <CategoryButton
+                  className="bg-purple-200"
+                  onClick={() => setSelectedCategory("depin")}
+                >
+                  DePin
+                </CategoryButton>
+                <CategoryButton
+                  className="bg-blue-200"
+                  onClick={() => setSelectedCategory("desci")}
+                >
+                  DeSci
+                </CategoryButton>
+                <CategoryButton
+                  className="bg-orange-200"
+                  onClick={() => setSelectedCategory("dao")}
+                >
+                  DAO
+                </CategoryButton>
+                <CategoryButton
+                  className="bg-yellow-200"
+                  onClick={() => setSelectedCategory("nft")}
+                >
+                  NFT
+                </CategoryButton>
               </div>
             </div>
 
             <div className="flex lg:flex-row gap-8 mt-10">
-              <div className="lg:basis-2/3 lg:flex-shrink-0">
+              <div className="lg:flex-shrink-0 lg:basis-2/3">
                 {recentBlogsList?.length > 0 ? (
                   <>
                     <p className="text-2xl text-start">Recent Posts</p>
@@ -203,20 +320,40 @@ const BlogListPage = () => {
                 <div className="mt-10">
                   <p className="text-2xl text-start">Categories</p>
                   <div className="items-center gap-4 xl:gap-8 grid grid-cols-3 mt-10">
-                    <CategoryButton className="bg-pink-200">All</CategoryButton>
-                    <CategoryButton className="bg-green-200">
+                    <CategoryButton
+                      className="bg-pink-200"
+                      onClick={() => setSelectedCategory("all")}
+                    >
+                      All
+                    </CategoryButton>
+                    <CategoryButton
+                      className="bg-green-200"
+                      onClick={() => setSelectedCategory("defi")}
+                    >
                       DeFi
                     </CategoryButton>
-                    <CategoryButton className="bg-purple-200">
+                    <CategoryButton
+                      className="bg-purple-200"
+                      onClick={() => setSelectedCategory("depin")}
+                    >
                       DePin
                     </CategoryButton>
-                    <CategoryButton className="bg-blue-200">
+                    <CategoryButton
+                      className="bg-blue-200"
+                      onClick={() => setSelectedCategory("desci")}
+                    >
                       DeSci
                     </CategoryButton>
-                    <CategoryButton className="bg-orange-200">
+                    <CategoryButton
+                      className="bg-orange-200"
+                      onClick={() => setSelectedCategory("dao")}
+                    >
                       DAO
                     </CategoryButton>
-                    <CategoryButton className="bg-yellow-200">
+                    <CategoryButton
+                      className="bg-yellow-200"
+                      onClick={() => setSelectedCategory("nft")}
+                    >
                       NFT
                     </CategoryButton>
                   </div>

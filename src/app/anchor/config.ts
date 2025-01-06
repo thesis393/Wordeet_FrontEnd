@@ -5,7 +5,7 @@ import { IDL } from "./idl";
 import {
 	PublicKey,
 } from "@solana/web3.js";
-export const WORDEET_PROGRAM_ID = new PublicKey("2Yq3huSbhr1CZAGiHmPGc1E9XGVu1YtsWZcasra62pRj");
+export const WORDEET_PROGRAM_ID = new PublicKey("34esTnyJ2scF4V9G6uWJ1DgYwV6qrmKaRkCpkF3s1A5P");
 
 const useProgram = () => {
 	const connection = new anchor.web3.Connection(

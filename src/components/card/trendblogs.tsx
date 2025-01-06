@@ -40,7 +40,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 import { faHeart } from "@fortawesome/fontawesome-free-solid";
 import { library, IconProp } from "@fortawesome/fontawesome-svg-core";
-
+interface VoteInfo {
+  status: number; // 1 = upvote, 2 = downvote
+}
 const TrendBlogCard = (props: INewBlogCard) => {
   const [liked, setLiked] = useState(false);
 
@@ -50,7 +52,9 @@ const TrendBlogCard = (props: INewBlogCard) => {
   const { setDraftBlogInfo } = useDraftBlogInfo();
   const program = useProgram();
   const [writerProfile, setWriterProfile] = useState<any>({});
+  const [myVoteInfo, setVoteInfo] = useState<VoteInfo>({ status: 0 });
   const [collectorInfo, setCollectorInfo] = useState<any[]>([]);
+  const [transactionPending, setTransactionPending] = useState(false);
 
   useEffect(() => {
     getWriterInfo();
@@ -82,8 +86,6 @@ const TrendBlogCard = (props: INewBlogCard) => {
 
   const getCollectorInfo = async () => {
     try {
-      const tempPubKey = new PublicKey(props.walletaddress);
-
       if (program) {
         const allCollector = await program.account.collectorInfo.all();
 
@@ -239,6 +241,9 @@ const TrendBlogCard = (props: INewBlogCard) => {
     }
     return false;
   };
+
+  const sleep = async (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   const addCollectorInfo = async (
     blogId: string,
@@ -417,13 +422,161 @@ const TrendBlogCard = (props: INewBlogCard) => {
     }
   };
 
-  const onClickUpvote = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  // Function to create Vote Info (if it doesn't exist)
+  const createVoteInfo = async (voteStatus: number = 0) => {
+    if (program) {
+      try {
+        setTransactionPending(true);
+        console.log("createVoteInfo start: " + voteStatus);
+
+        const blogPdaPublicKey = new PublicKey(props._id);
+        const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+        const [votePda] = findProgramAddressSync(
+          [
+            utf8.encode("vote"),
+            blogPdaPublicKey.toBuffer(),
+            ownerPublicKey.toBuffer(),
+          ],
+          program.programId
+        );
+
+        const tx = await program.methods
+          .addVote(voteStatus)
+          .accounts({
+            postAccount: blogPdaPublicKey,
+            voteInfo: votePda,
+            voter: ownerPublicKey,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log(`Transaction successful: ${tx}`);
+        setTransactionPending(false);
+
+        // Set the vote info after creation (initialize status)
+        setVoteInfo({ status: voteStatus }); // This sets the status based on what was just created
+        return true;
+      } catch (error) {
+        console.log("Error creating vote account:", error);
+        setTransactionPending(false);
+        return false;
+      }
+    }
+    return false;
   };
 
-  const onClickDownvote = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  // Function to fetch Vote Info
+  const fetchVoteInfo = async () => {
+    if (program) {
+      const blogPdaPublicKey = new PublicKey(props._id);
+
+      const blogdata = await program.account.blogPost.fetch(blogPdaPublicKey);
+
+      console.log("fetchVoteInfo blogdata:", blogdata, blogPdaPublicKey);
+      const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+      const [votePda] = findProgramAddressSync(
+        [
+          utf8.encode("vote"),
+          blogPdaPublicKey.toBuffer(),
+          ownerPublicKey.toBuffer(),
+        ],
+        program.programId
+      );
+
+      try {
+        const voteInfo = await program.account.voteInfo.fetch(votePda);
+        console.log("fetchVoteInfo: ", voteInfo);
+        return voteInfo;
+      } catch (error) {
+        console.log("Error fetching vote info:", error);
+        return null;
+      }
+    }
+    return null;
   };
+
+  // Function to edit Vote Status
+  const editVoteStatus = async (newStatus: number) => {
+    if (program && !transactionPending) {
+      setTransactionPending(true);
+
+      const blogPdaPublicKey = new PublicKey(props._id);
+      const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+      const [votePda] = findProgramAddressSync(
+        [
+          utf8.encode("vote"),
+          blogPdaPublicKey.toBuffer(),
+          ownerPublicKey.toBuffer(),
+        ],
+        program.programId
+      );
+
+      try {
+        const voteInfo = await fetchVoteInfo();
+
+        if (voteInfo) {
+          // If vote info exists and needs to be updated
+          if (voteInfo.status !== newStatus) {
+            const tx = await program.methods
+              .editVote(newStatus)
+              .accounts({
+                postAccount: blogPdaPublicKey,
+                voteInfo: votePda,
+                voter: ownerPublicKey,
+              })
+              .rpc();
+
+            console.log(`Transaction successful: ${tx}`);
+            setVoteInfo({ status: newStatus }); // Set the new status in myVoteInfo
+          }
+        } else {
+          console.log("Vote info does not exist. Creating...");
+          // If vote info doesn't exist, create it with the new status
+          await createVoteInfo(newStatus);
+        }
+
+        setTransactionPending(false);
+      } catch (error) {
+        console.log("Error handling vote status:", error);
+        setTransactionPending(false);
+      }
+    }
+  };
+
+  // Function to handle Upvote click
+  const onClickUpvote = async (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
+
+    console.log("onClickUpvote: " + myVoteInfo.status);
+    // Only proceed if the current status is not already upvote
+    if (myVoteInfo.status !== 1) {
+      const newStatus =
+        myVoteInfo.status === 0 || myVoteInfo.status === 2
+          ? 1
+          : myVoteInfo.status;
+
+      // Call the function to edit the vote status
+      await editVoteStatus(newStatus);
+    }
+  };
+
+  // Function to handle Downvote click
+  const onClickDownvote = async (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
+
+    console.log("onClickDownvote: " + myVoteInfo.status);
+    // Only proceed if the current status is not already downvote
+    if (myVoteInfo.status !== 2) {
+      const newStatus =
+        myVoteInfo.status === 0 || myVoteInfo.status === 1
+          ? 2
+          : myVoteInfo.status;
+
+      // Call the function to edit the vote status
+      await editVoteStatus(newStatus);
+    }
+  };
+
   return (
     <div
       className="border-none rounded-lg w-full h-full cursor-pointer"
@@ -479,39 +632,33 @@ const TrendBlogCard = (props: INewBlogCard) => {
               </div>
             </div>
           </div>
-          <div className="flex justify-around basis-1/6">
-            <div onClick={(event) => onClickUpvote(event)}>
-              <FontAwesomeIcon icon={faHeart} /> {props?.upvote}
-            </div>
-            <div onClick={(event) => onClickDownvote(event)}>
-              <FontAwesomeIcon icon={faHeartCrack} /> {props?.downvote}
-            </div>
+          <div className="flex justify-start gap-5 basis-1/6">
+            <AvatarGroup
+              isBordered
+              max={5}
+              total={props?.ntotalcollector}
+              renderCount={(count) => (
+                <p className="font-medium text-foreground text-small ms-2">
+                  {count} Collected
+                </p>
+              )}
+            >
+              {collectorInfo?.map((item: any, idx: number) => (
+                // <Link href={`/profile/${item.walletaddress}`} key={idx}>
+                <Avatar
+                  src={item?.avatar}
+                  size="sm"
+                  onClick={(event) =>
+                    onClickCollector(item?.walletaddress, event)
+                  }
+                  key={idx}
+                />
+                // </Link>
+              ))}
+            </AvatarGroup>
           </div>
           <div className="flex flex-col pr-5 w-full bais-1/6">
             <div className="flex justify-between items-center gap-2 w-full">
-              <AvatarGroup
-                isBordered
-                max={5}
-                total={props?.ntotalcollector}
-                renderCount={(count) => (
-                  <p className="font-medium text-foreground text-small ms-2">
-                    {count} Collected
-                  </p>
-                )}
-              >
-                {collectorInfo?.map((item: any, idx: number) => (
-                  // <Link href={`/profile/${item.walletaddress}`} key={idx}>
-                  <Avatar
-                    src={item?.avatar}
-                    size="sm"
-                    onClick={(event) =>
-                      onClickCollector(item?.walletaddress, event)
-                    }
-                    key={idx}
-                  />
-                  // </Link>
-                ))}
-              </AvatarGroup>
               <Button
                 radius="full"
                 className="bg-gradient-to-tr from-purple-700 to-blue-700 shadow-lg text-white"
@@ -520,6 +667,14 @@ const TrendBlogCard = (props: INewBlogCard) => {
               >
                 {statusText[props.status]}
               </Button>
+              <div className="flex flex-row gap-5">
+                <div onClick={(event) => onClickUpvote(event)}>
+                  <FontAwesomeIcon icon={faHeart} /> {props?.upvote}
+                </div>
+                <div onClick={(event) => onClickDownvote(event)}>
+                  <FontAwesomeIcon icon={faHeartCrack} /> {props?.downvote}
+                </div>
+              </div>
             </div>
           </div>
         </div>

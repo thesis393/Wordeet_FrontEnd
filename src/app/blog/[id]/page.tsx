@@ -47,6 +47,9 @@ const BlogPage = () => {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [nLimitClientBlogs, setLimitClientBlogs] = useState(2);
   const [writerProfile, setWriterProfile] = useState<any>({});
+  const [collectorInfo, setCollectorInfo] = useState<any[]>([]);
+  const [irysTransaction, setIrysTransaction] = useState<string | null>(null);
+  const [domLoaded, setDomLoaded] = useState(false);
 
   const params = useParams();
   const program = useProgram();
@@ -62,10 +65,55 @@ const BlogPage = () => {
     setIsTipModalOpen(false);
   };
 
+  const extractIdentifier = (url: string | null): string | null => {
+    if (url) {
+      const match = url.match(/\/([^/]+)$/); // Match the last part after the last '/'
+      return match ? match[1] : null;
+    }
+    return null;
+  };
+
   const router = useRouter();
 
   const handleContentChange = (newContent: any) => {
     setContent(newContent);
+  };
+
+  const getCollectorInfo = async () => {
+    try {
+      if (program) {
+        const allCollector = await program.account.collectorInfo.all();
+
+        const formattedCollector = allCollector.map(
+          ({ publicKey, account }) => ({
+            _id: publicKey.toString(),
+            blogPost: account.blogPost,
+            collector: account.collector,
+            username: account.username,
+            avatar: account.avatar,
+            walletaddress: account.walletaddress,
+            nftMintAddress: account.nftMintAddress,
+            createdAt: account.createdAt,
+          })
+        );
+
+        console.log("formattedCollector:", formattedCollector);
+        console.log("params._id", params.id);
+
+        const filteredCollector = formattedCollector
+          .filter((collector) => collector.blogPost.toString() == params.id)
+          .sort((a, b) => a.createdAt - b.createdAt);
+        setCollectorInfo(filteredCollector);
+
+        console.log(
+          "getCollectorInfo success: ",
+          formattedCollector,
+          collectorInfo
+        );
+      }
+    } catch (error) {
+      console.log("getCollectorInfo", error);
+    }
   };
 
   //SmartContract Way
@@ -75,12 +123,15 @@ const BlogPage = () => {
 
       try {
         const myid = params.id;
+        console.log("myid", myid);
         console.log("ddd", blog?.walletaddress);
         if (blog?.walletaddress && program) {
           const allBlogs = await program.account.blogPost.all();
           // Map blog data to formatted posts
           const formattedBlogs = await Promise.all(
             allBlogs.map(async ({ publicKey, account }) => {
+              const identifier = extractIdentifier(account.content);
+              setIrysTransaction(identifier);
               const irysResponse = await getDataFromIrys(`${account.content}`);
               const content = irysResponse?.data?.content || account.content; // Use fetched content or fallback to original
 
@@ -125,6 +176,7 @@ const BlogPage = () => {
             .slice(0, nLimitClientBlogs);
           setOtherBlogs(otherBlogsResult);
           getWriterInfo();
+          getCollectorInfo();
         }
       } catch (err: any) {
         setError(err.message || "Failed to fetch blogs");
@@ -135,6 +187,10 @@ const BlogPage = () => {
 
     fetchClientBlogs();
   }, [walletaddress]);
+
+  useEffect(() => {
+    setDomLoaded(true);
+  }, []);
 
   const getWriterInfo = async () => {
     try {
@@ -240,6 +296,14 @@ const BlogPage = () => {
     }
   }, [params]);
 
+  const onClickCollector = (walletAddress: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    console.log(`Clicked collector with wallet: ${walletAddress}`);
+    if (walletAddress) {
+      router.push(`/profile/${walletAddress}`);
+    }
+  };
+
   //Backend way
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -265,264 +329,284 @@ const BlogPage = () => {
   const screenWidth = useScreenWidth();
 
   return (
-    <Layout>
-      {blog && (
-        <div className="py-12 w-11/12 container">
-          <div>
-            <Image
-              alt={blog?.title}
-              className="object-cover"
-              height={200}
-              shadow="md"
-              // src={"/assets/image/article/sui-network.webp"}
-              src={
-                blog?.coverimage
-                  ? `${blog?.coverimage}`
-                  : "/assets/image/article/sui-network.webp"
-              }
-              width="100%"
-            />
-          </div>
-          <h2 className="mt-4 text-2xl ms:text-3xl xl:text-4xl">
-            {blog?.title}
-          </h2>
-
-          <div className="mt-2 text-lg leading-8">
-            <ReadTipTap
-              content={blog?.content}
-              onChange={handleContentChange}
-            />
-          </div>
-
-          <div className="flex flex-row justify-between mt-8">
-            <div className="flex justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/profile/${writerProfile?.walletaddress}`}
-                  className="flex items-center gap-2"
-                >
-                  <Avatar
-                    alt={writerProfile?.username}
-                    className="rounded-full object-cover"
-                    src={writerProfile?.avatar}
-                    size="lg"
-                    isBordered
-                    color="success"
-                  />
-                  <p className="text-lg">{writerProfile?.username}</p>
-                </Link>
-              </div>
-              <Button
-                onClick={openTipModal}
-                color="default"
-                variant="ghost"
-                size="sm"
-                startContent={<CoinsIcon />}
-              >
-                tip
-              </Button>
-            </div>
-            <div>
-              <Button className="text-right bg-primary shadow-lg text-white">
-                Collect
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-center mt-3">
-            <AvatarGroup
-              isBordered
-              max={5}
-              total={blog?.ntotalcollector}
-              renderCount={(count) => (
-                <p className="font-medium text-foreground text-small ms-2">
-                  {count} Collected
-                </p>
-              )}
-            >
-              {/* {blog?.collectorInfos?.map((item: any, idx: number) => (
-                <Avatar src={item?.avatar} key={idx} />
-              ))} */}
-            </AvatarGroup>
-          </div>
-
-          <div className="mt-32">
-            <p className="text-2xl text-center">
-              Subscribe to {blog?.username}
-            </p>
-            <div className="flex justify-center mt-3">
-              <div className="flex justify-center items-center border-gray-300 border rounded rounded-xl w-full max-w-md overflow-hidden">
-                <input
-                  type="email"
-                  placeholder={blog?.username}
-                  className="flex-1 px-4 py-2 w-full text-gray-700 focus:outline-none"
+    <>
+      {domLoaded && (
+        <Layout>
+          {blog && (
+            <div className="py-12 w-11/12 container">
+              <div>
+                <Image
+                  alt={blog?.title}
+                  className="object-cover"
+                  height={200}
+                  shadow="md"
+                  // src={"/assets/image/article/sui-network.webp"}
+                  src={
+                    blog?.coverimage
+                      ? `${blog?.coverimage}`
+                      : "/assets/image/article/sui-network.webp"
+                  }
+                  width="100%"
                 />
-                <CustomButton
-                  style={"purple"}
-                  className="flex-1 rounded-none rounded-r-xl"
-                >
-                  Submit
-                </CustomButton>
               </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-8 mt-6">
-            <Card>
-              <div className="flex sm:flex-row flex-col justify-between items-center p-4">
-                <div>
-                  <p className="text-xl">Subscribe to Social Graph Ventures</p>
-                  <p>Receive the latest updates directly to your inbox</p>
-                </div>
-              </div>
-            </Card>
-            <div className="flex md:flex-row flex-col gap-8">
-              <Card className="p-4 basis-1/2">
-                <div className="flex flex-col items-center gap-8">
-                  <Image
-                    src={
-                      blog?.coverimage
-                        ? blog?.coverimage
-                        : `/assets/image/article/6.png`
-                    }
-                    alt=""
-                    width={200}
-                    height={200}
-                  />
-                  <div className="flex flex-col items-center gap-4">
-                    <p>
-                      Mint this entry as an NFT to add it to your collection.
-                    </p>
-                    <Button>Mint</Button>
-                    <AvatarGroup
-                      isBordered
-                      max={5}
-                      total={blog?.ntotalcollector}
-                      renderCount={(count) => (
-                        <p className="font-medium text-foreground text-small ms-2">
-                          {count} Collected
-                        </p>
-                      )}
-                    >
-                      {/* {blog?.collectorInfos?.map(
-                        (item: any, idx: number) => (
-                          <Link
-                            href={`/profile/${item.walletaddress}`}
-                            key={idx}
-                          >
-                            <Avatar src={item?.avatar} size="sm" />
-                          </Link>
-                        )
-                      )} */}
-                    </AvatarGroup>
-                  </div>
-                </div>
-              </Card>
-              <Card className="flex flex-col p-8 basis-1/2">
-                <div className="flex flex-1">
-                  <p>Verification</p>
-                  <p>
-                    This entry has been permanently stored onchain and signed by
-                    its creator.
-                  </p>
-                </div>
-                <div className="border-gray-900 border rounded-xl divide-y-1 divide-gray-900">
-                  <div className="flex flex-col px-3 py-1">
-                    <p className="text-xs uppercase">arweave transaction</p>
-                    <p className="text-sm">asdf9oasdfasdfasdfasghasdfasdfa</p>
-                  </div>
-                  {blog?.nftcollectionaddress ? (
-                    <div className="flex flex-col px-3 py-1">
-                      <p className="text-xs uppercase">NFT Address</p>
-                      <p className="text-sm">{blog?.nftcollectionaddress}</p>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  {blog?.walletaddress ? (
-                    <div className="flex flex-col px-3 py-1">
-                      <p className="text-xs uppercase">AUTHOR ADDRESS</p>
-                      <p className="text-sm">{blog?.walletaddress}</p>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                  {blog?._id ? (
-                    <div className="flex flex-col px-3 py-1">
-                      <p className="text-xs uppercase">Content Digest</p>
-                      <p className="text-sm">{blog?._id}</p>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </div>
-          <div className="mt-10">
-            {clientBlogs?.length ? (
-              <>
-                <div className="flex justify-between items-center felx-row">
-                  <p className="text-2xl">
-                    Check Out More Articles By {writerProfile?.username}
-                  </p>
-                  <div
-                    className="text-4xl text-primary cursor-pointer"
-                    onClick={() => {
-                      router.push(`/profile/${walletaddress}`);
-                    }}
-                  >
-                    View All
-                  </div>
-                </div>
-                <div className="">
-                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_480px)))] grid-rows-[453px] mydiv">
-                    {clientBlogs.map((article, idx: number) => (
-                      <ClientBlogs {...article} key={idx} />
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <></>
-            )}
-          </div>
+              <h2 className="mt-4 text-2xl ms:text-3xl xl:text-4xl">
+                {blog?.title}
+              </h2>
 
-          <div className="mt-10">
-            {otherBlogs?.length ? (
-              <>
-                <div className="flex flex-row justify-between cursor-pointer">
-                  <p className="text-2xl">
-                    More Articles from Different Writes
-                  </p>
-                  <div
-                    className="text-4xl text-primary"
-                    onClick={() => {
-                      router.push(`/blog/list`);
-                    }}
+              <div className="mt-2 text-lg leading-8">
+                <ReadTipTap
+                  content={blog?.content}
+                  onChange={handleContentChange}
+                />
+              </div>
+
+              <div className="flex flex-row justify-between mt-8">
+                <div className="flex justify-between items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/profile/${writerProfile?.walletaddress}`}
+                      className="flex items-center gap-2"
+                    >
+                      <Avatar
+                        alt={writerProfile?.username}
+                        className="rounded-full object-cover"
+                        src={writerProfile?.avatar}
+                        size="lg"
+                        isBordered
+                        color="success"
+                      />
+                      <p className="text-lg">{writerProfile?.username}</p>
+                    </Link>
+                  </div>
+                  <Button
+                    onClick={openTipModal}
+                    color="default"
+                    variant="ghost"
+                    size="sm"
+                    startContent={<CoinsIcon />}
                   >
-                    View All
+                    tip
+                  </Button>
+                </div>
+                <div>
+                  <Button className="text-right bg-primary shadow-lg text-white">
+                    Collect
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-3">
+                <AvatarGroup
+                  isBordered
+                  max={5}
+                  total={blog?.ntotalcollector}
+                  renderCount={(count) => (
+                    <p className="font-medium text-foreground text-small ms-2">
+                      {count} Collected
+                    </p>
+                  )}
+                >
+                  {collectorInfo?.map((item: any, idx: number) => (
+                    // <Link href={`/profile/${item.walletaddress}`} key={idx}>
+                    <Avatar
+                      src={item?.avatar}
+                      size="sm"
+                      onClick={(event) =>
+                        onClickCollector(item?.walletaddress, event)
+                      }
+                      key={idx}
+                    />
+                    // </Link>
+                  ))}
+                </AvatarGroup>
+              </div>
+
+              <div className="mt-32">
+                <p className="text-2xl text-center">
+                  Subscribe to {blog?.username}
+                </p>
+                <div className="flex justify-center mt-3">
+                  <div className="flex justify-center items-center border-gray-300 border rounded rounded-xl w-full max-w-md overflow-hidden">
+                    <input
+                      type="email"
+                      placeholder={blog?.username}
+                      className="flex-1 px-4 py-2 w-full text-gray-700 focus:outline-none"
+                    />
+                    <CustomButton
+                      style={"purple"}
+                      className="flex-1 rounded-none rounded-r-xl"
+                    >
+                      Submit
+                    </CustomButton>
                   </div>
                 </div>
-                <div className="">
-                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
-                    {otherBlogs.map((article, idx: number) => (
-                      <ClientBlogs {...article} key={idx} />
-                    ))}
+              </div>
+              <div className="flex flex-col gap-8 mt-6">
+                <Card>
+                  <div className="flex sm:flex-row flex-col justify-between items-center p-4">
+                    <div>
+                      <p className="text-xl">
+                        Subscribe to Social Graph Ventures
+                      </p>
+                      <p>Receive the latest updates directly to your inbox</p>
+                    </div>
                   </div>
+                </Card>
+                <div className="flex md:flex-row flex-col gap-8">
+                  <Card className="p-4 basis-1/2">
+                    <div className="flex flex-col items-center gap-8">
+                      <Image
+                        src={
+                          blog?.coverimage
+                            ? blog?.coverimage
+                            : `/assets/image/article/6.png`
+                        }
+                        alt=""
+                        width={200}
+                        height={200}
+                      />
+                      <div className="flex flex-col items-center gap-4">
+                        <p>
+                          Mint this entry as an NFT to add it to your
+                          collection.
+                        </p>
+                        <Button>Mint</Button>
+                        <AvatarGroup
+                          isBordered
+                          max={5}
+                          total={blog?.ntotalcollector}
+                          renderCount={(count) => (
+                            <p className="font-medium text-foreground text-small ms-2">
+                              {count} Collected
+                            </p>
+                          )}
+                        >
+                          {collectorInfo?.map((item: any, idx: number) => (
+                            // <Link href={`/profile/${item.walletaddress}`} key={idx}>
+                            <Avatar
+                              src={item?.avatar}
+                              size="sm"
+                              onClick={(event) =>
+                                onClickCollector(item?.walletaddress, event)
+                              }
+                              key={idx}
+                            />
+                            // </Link>
+                          ))}
+                        </AvatarGroup>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="flex flex-col p-8 basis-1/2">
+                    <div className="flex flex-1">
+                      <p>Verification</p>
+                      <p>
+                        This entry has been permanently stored onchain and
+                        signed by its creator.
+                      </p>
+                    </div>
+                    <div className="border-gray-900 border rounded-xl divide-y-1 divide-gray-900">
+                      <div className="flex flex-col px-3 py-1">
+                        <p className="text-xs uppercase">Irys transaction</p>
+                        <p className="text-sm">{irysTransaction}</p>
+                      </div>
+                      {blog?.nftcollectionaddress ? (
+                        <div className="flex flex-col px-3 py-1">
+                          <p className="text-xs uppercase">NFT Address</p>
+                          <p className="text-sm">
+                            {blog?.nftcollectionaddress}
+                          </p>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      {blog?.walletaddress ? (
+                        <div className="flex flex-col px-3 py-1">
+                          <p className="text-xs uppercase">AUTHOR ADDRESS</p>
+                          <p className="text-sm">{blog?.walletaddress}</p>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                      {blog?._id ? (
+                        <div className="flex flex-col px-3 py-1">
+                          <p className="text-xs uppercase">Content Digest</p>
+                          <p className="text-sm">{blog?._id}</p>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  </Card>
                 </div>
-              </>
-            ) : (
-              <></>
-            )}
-          </div>
-        </div>
+              </div>
+              <div className="mt-10">
+                {clientBlogs?.length ? (
+                  <>
+                    <div className="flex justify-between items-center felx-row">
+                      <p className="text-2xl">
+                        Check Out More Articles By {writerProfile?.username}
+                      </p>
+                      <div
+                        className="text-4xl text-primary cursor-pointer"
+                        onClick={() => {
+                          router.push(`/profile/${walletaddress}`);
+                        }}
+                      >
+                        View All
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_480px)))] grid-rows-[453px] mydiv">
+                        {clientBlogs.map((article, idx: number) => (
+                          <ClientBlogs {...article} key={idx} />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <></>
+                )}
+              </div>
+
+              <div className="mt-10">
+                {otherBlogs?.length ? (
+                  <>
+                    <div className="flex flex-row justify-between cursor-pointer">
+                      <p className="text-2xl">
+                        More Articles from Different Writes
+                      </p>
+                      <div
+                        className="text-4xl text-primary"
+                        onClick={() => {
+                          router.push(`/blog/list`);
+                        }}
+                      >
+                        View All
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_357px)))] grid-rows-[453px] mydiv">
+                        {otherBlogs.map((article, idx: number) => (
+                          <ClientBlogs {...article} key={idx} />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </div>
+          )}
+          <TipModal
+            isOpen={isTipModalOpen}
+            onClose={closeTipModal}
+            DesPubKey={walletaddress}
+          />
+        </Layout>
       )}
-      <TipModal
-        isOpen={isTipModalOpen}
-        onClose={closeTipModal}
-        DesPubKey={walletaddress}
-      />
-    </Layout>
+    </>
   );
 };
 

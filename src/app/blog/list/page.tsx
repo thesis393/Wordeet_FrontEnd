@@ -71,7 +71,10 @@ const BlogListPage = () => {
     const fetchBlogs = async () => {
       try {
         if (!program) return;
+
         const allBlogs = await program.account.blogPost.all();
+
+        console.log("allBlogs", allBlogs);
 
         // Map blog data to formatted posts
         const formattedBlogs = await Promise.all(
@@ -98,6 +101,8 @@ const BlogListPage = () => {
             };
           })
         );
+
+        console.log("formattedBlogs", formattedBlogs);
 
         // Sort blogs by creation date
         const sortedBlogs = formattedBlogs.sort(
@@ -130,7 +135,7 @@ const BlogListPage = () => {
         setTopUsers(formattedUsers);
         console.log("Total Blogs Count:", sortedBlogs.length);
       } catch (error) {
-        console.error("Error fetching blogs:", error);
+        console.log("Error fetching blogs:", error);
       }
     };
 

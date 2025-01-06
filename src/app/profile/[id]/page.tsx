@@ -47,13 +47,12 @@ export default function OtherProfile() {
   const [createdBlogs, setCreatedBlogs] = useState<any[]>([]);
   const [collectedBlogs, setCollectedBlogs] = useState<any[]>([]);
 
-  const program = useProgram();
-
   useEffect(() => {
     setDomLoaded(true);
   }, []);
 
   const params = useParams();
+  const program = useProgram();
 
   const getUserProfileById = async (walletAddress: any) => {
     console.log("getUserProfileById start", program, walletAddress);
@@ -83,6 +82,15 @@ export default function OtherProfile() {
         console.log("Error fetching profile account:", error);
       }
     }
+  };
+
+  // Assuming formattedBlogs and collectedBlogs are already populated as described
+  const getCollectedBlogs = (formattedBlogs: any[], collectedBlogs: any[]) => {
+    return formattedBlogs.filter((blog) =>
+      collectedBlogs.some(
+        (collectedBlog) => collectedBlog.blogPost.toString() === blog._id
+      )
+    );
   };
 
   //SmartContract Way
@@ -134,16 +142,22 @@ export default function OtherProfile() {
           username: account.username,
           walletaddress: account.walletaddress,
           nftMintAddress: account.nftMintAddress,
+          blogPost: account.blogPost,
+          collector: account.collector,
+          createdAt: account.createdAt,
         })
       );
 
       const collectedBlogs = formattedCollectedBlogs.filter(
         (blog) => blog.walletaddress === walletAddress
       );
-
-      if (collectedBlogs.length > 0) {
-        setCollectedBlogCnt(collectedBlogs.length);
-        setCollectedBlogs(collectedBlogs);
+      const userCollectedBlogs = getCollectedBlogs(
+        formattedBlogs,
+        collectedBlogs
+      );
+      if (userCollectedBlogs.length > 0) {
+        setCollectedBlogCnt(userCollectedBlogs.length);
+        setCollectedBlogs(userCollectedBlogs);
       }
     } catch (error) {
       console.error("Error fetching blogs:", error);
@@ -239,183 +253,179 @@ export default function OtherProfile() {
 
   return (
     <>
-      <Layout>
-        {domLoaded && (
-          <>
-            <div className="flex justify-between items-center border-gray-300 mt-3 p-4 border-b w-full">
-              {/* <!-- Profile Section --> */}
-              <div className="flex items-center space-x-4">
-                {/* <!-- Avatar --> */}
-                {/* <div className="flex justify-center items-center bg-gray-500 rounded-full w-24 h-24 font-bold text-4xl text-white"> */}
-                <Avatar
-                  src={tempuserInfo?.avatar ? `${tempuserInfo?.avatar}` : ""}
-                  className="w-28 h-28 text-large"
-                />
-                {/* <!-- Profile Details --> */}
-                <div>
-                  {/* Edit Profile Button */}
-                  {params.id == walletAddress && (
-                    <Button
-                      color="default"
-                      variant="bordered"
-                      onClick={openModal}
-                    >
-                      Edit Profile
-                    </Button>
-                  )}
+      {domLoaded && (
+        <Layout>
+          <div className="flex justify-between items-center border-gray-300 mt-3 p-4 border-b w-full">
+            {/* <!-- Profile Section --> */}
+            <div className="flex items-center space-x-4">
+              {/* <!-- Avatar --> */}
+              {/* <div className="flex justify-center items-center bg-gray-500 rounded-full w-24 h-24 font-bold text-4xl text-white"> */}
+              <Avatar
+                src={tempuserInfo?.avatar ? `${tempuserInfo?.avatar}` : ""}
+                className="w-28 h-28 text-large"
+              />
+              {/* <!-- Profile Details --> */}
+              <div>
+                {/* Edit Profile Button */}
+                {params.id == walletAddress && (
+                  <Button
+                    color="default"
+                    variant="bordered"
+                    onClick={openModal}
+                  >
+                    Edit Profile
+                  </Button>
+                )}
 
-                  {/* EditProfileModal */}
+                {/* EditProfileModal */}
 
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="pr-1 text-2xl dark:text-white leading-tight">
-                      {tempuserInfo?.username}
-                      <span className="xs:inline-flex hidden text-2xl">
-                        's&nbsp;
-                      </span>
-                      <span className="xs:inline-flex hidden text-gray-400">
-                        Info
-                      </span>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className="pr-1 text-2xl dark:text-white leading-tight">
+                    {tempuserInfo?.username}
+                    <span className="xs:inline-flex hidden text-2xl">
+                      's&nbsp;
                     </span>
+                    <span className="xs:inline-flex hidden text-gray-400">
+                      Info
+                    </span>
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {/* Wallet Address */}
+                  <div className="text-gray-500 text-sm">
+                    {tempuserInfo?.walletaddress?.slice(0, 4)}...
+                    {tempuserInfo?.walletaddress?.slice(-4)}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {/* Wallet Address */}
-                    <p className="text-gray-500 text-sm">
-                      {tempuserInfo?.walletaddress?.slice(0, 4)}...
-                      {tempuserInfo?.walletaddress?.slice(-4)}
-                    </p>
 
-                    {/* Copy Button */}
-                    <button
-                      className="text-gray-500 hover:text-gray-700"
-                      onClick={copyAddress}
-                      aria-label="Copy wallet address"
+                  {/* Copy Button */}
+                  <button
+                    className="text-gray-500 hover:text-gray-700"
+                    onClick={copyAddress}
+                    aria-label="Copy wallet address"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                      className="ml-3 w-6"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        aria-hidden="true"
-                        className="ml-3 w-6"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6"
-                        ></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* <!-- Stats Section --> */}
-              <div className="flex items-center space-x-6 text-gray-500">
-                <div className="text-center">
-                  <span className="block font-semibold text-lg">
-                    {createdBlogCnt}
-                  </span>
-                  <span className="text-sm">Created</span>
-                </div>
-                <div className="text-center">
-                  <span className="block font-semibold text-lg">
-                    {" "}
-                    {collectedBlogCnt}
-                  </span>
-                  <span className="text-sm">Collected</span>
-                </div>
-                <div className="text-center">
-                  <span className="block font-semibold text-lg">
-                    {tempuserInfo?.blogs?.drafts?.count}
-                  </span>
-                  <span className="text-sm">Draft</span>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6"
+                      ></path>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* <!-- Taps Section --> */}
-            <div className="flex items-center gap-3 mt-2 w-full">
-              <div className="flex flex-col w-full">
-                <Tabs
-                  aria-label="Options"
-                  color="primary"
-                  variant="underlined"
-                  classNames={{
-                    tabList:
-                      "gap-6 w-full relative rounded-none p-0  justify-center",
-                    cursor: "w-full bg-[#22d3ee]",
-                    tab: "max-w-fit px-0 h-12",
-                    tabContent: "group-data-[selected=true]:text-[#06b6d4]",
-                  }}
+            {/* <!-- Stats Section --> */}
+            <div className="flex items-center space-x-6 text-gray-500">
+              <div className="text-center">
+                <span className="block font-semibold text-lg">
+                  {createdBlogCnt}
+                </span>
+                <span className="text-sm">Created</span>
+              </div>
+              <div className="text-center">
+                <span className="block font-semibold text-lg">
+                  {" "}
+                  {collectedBlogCnt}
+                </span>
+                <span className="text-sm">Collected</span>
+              </div>
+              <div className="text-center">
+                <span className="block font-semibold text-lg">
+                  {tempuserInfo?.blogs?.drafts?.count}
+                </span>
+                <span className="text-sm">Draft</span>
+              </div>
+            </div>
+          </div>
+
+          {/* <!-- Taps Section --> */}
+          <div className="flex items-center gap-3 mt-2 w-full">
+            <div className="flex flex-col w-full">
+              <Tabs
+                aria-label="Options"
+                color="primary"
+                variant="underlined"
+                classNames={{
+                  tabList:
+                    "gap-6 w-full relative rounded-none p-0  justify-center",
+                  cursor: "w-full bg-[#22d3ee]",
+                  tab: "max-w-fit px-0 h-12",
+                  tabContent: "group-data-[selected=true]:text-[#06b6d4]",
+                }}
+              >
+                <Tab
+                  key="Created"
+                  title={
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faFeather} />
+                      <span>Created</span>
+                      <Chip size="sm" variant="faded">
+                        {createdBlogCnt}
+                      </Chip>
+                    </div>
+                  }
                 >
-                  <Tab
-                    key="Created"
-                    title={
-                      <div className="flex items-center space-x-2">
-                        <FontAwesomeIcon icon={faFeather} />
-                        <span>Created</span>
-                        <Chip size="sm" variant="faded">
-                          {createdBlogCnt}
-                        </Chip>
-                      </div>
-                    }
-                  >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {createdBlogs.map(
-                        (article: INewBlogCard, idx: number) => (
-                          <BlogCard {...article} key={idx} />
-                        )
-                      )}
+                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
+                    {createdBlogs.map((article: INewBlogCard, idx: number) => (
+                      <BlogCard {...article} key={idx} />
+                    ))}
+                  </div>
+                </Tab>
+                <Tab
+                  key="Collected"
+                  title={
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faGem} />
+                      <span>Collected</span>
+                      <Chip size="sm" variant="faded">
+                        {collectedBlogCnt}
+                      </Chip>
                     </div>
-                  </Tab>
-                  <Tab
-                    key="Collected"
-                    title={
-                      <div className="flex items-center space-x-2">
-                        <FontAwesomeIcon icon={faGem} />
-                        <span>Collected</span>
-                        <Chip size="sm" variant="faded">
-                          {collectedBlogCnt}
-                        </Chip>
-                      </div>
-                    }
-                  >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {collectedBlogs.map(
-                        (article: INewBlogCard, idx: number) => (
-                          <BlogCard {...article} key={idx} />
-                        )
-                      )}
+                  }
+                >
+                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
+                    {collectedBlogs.map(
+                      (article: INewBlogCard, idx: number) => (
+                        <BlogCard {...article} key={idx} />
+                      )
+                    )}
+                  </div>
+                </Tab>
+                <Tab
+                  key="Draft"
+                  title={
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faRibbon} />
+                      <span>Draft</span>
+                      <Chip size="sm" variant="faded">
+                        {tempuserInfo?.blogs?.drafts?.count}
+                      </Chip>
                     </div>
-                  </Tab>
-                  <Tab
-                    key="Draft"
-                    title={
-                      <div className="flex items-center space-x-2">
-                        <FontAwesomeIcon icon={faRibbon} />
-                        <span>Draft</span>
-                        <Chip size="sm" variant="faded">
-                          {tempuserInfo?.blogs?.drafts?.count}
-                        </Chip>
-                      </div>
-                    }
-                  >
-                    <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {tempuserInfo?.blogs?.drafts?.data.map(
-                        (article: INewBlogCard, idx: number) => (
-                          <BlogCard {...article} key={idx} />
-                        )
-                      )}
-                    </div>
-                  </Tab>
-                </Tabs>
-              </div>
+                  }
+                >
+                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
+                    {tempuserInfo?.blogs?.drafts?.data.map(
+                      (article: INewBlogCard, idx: number) => (
+                        <BlogCard {...article} key={idx} />
+                      )
+                    )}
+                  </div>
+                </Tab>
+              </Tabs>
             </div>
-          </>
-        )}
-        <EditProfileModal isOpen={isModalOpen} onClose={closeModal} />
-      </Layout>
+          </div>
+          <EditProfileModal isOpen={isModalOpen} onClose={closeModal} />
+        </Layout>
+      )}
     </>
   );
 }

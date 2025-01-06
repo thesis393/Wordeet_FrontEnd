@@ -328,6 +328,11 @@ export type WordeetContract = {
 			"name": "editVote",
 			"accounts": [
 				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
 					"name": "voteInfo",
 					"isMut": true,
 					"isSigner": false
@@ -879,6 +884,11 @@ export const IDL: WordeetContract = {
 		{
 			"name": "editVote",
 			"accounts": [
+				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
 				{
 					"name": "voteInfo",
 					"isMut": true,

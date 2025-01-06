@@ -66,7 +66,7 @@ const ConnectButton = (props: any) => {
         await sleep(2000);
         getUserProfile();
       } catch (error) {
-        console.error("Error initializing user:", error);
+        console.log("Error initializing user:", error);
         setTransactionPending(false);
       }
     }

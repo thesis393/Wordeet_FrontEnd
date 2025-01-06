@@ -20,9 +20,7 @@ import toast, { Toaster } from "react-hot-toast";
 export default function NewBlog() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [coverimage, setImage] = useState("dfjdkfjdkjf");
   const [keywords, setKeyWords] = useState("");
-  const [images, setImages] = useState<any>([]);
   const [isUploadBlogModalOpen, setIsUploadBlogModalOpen] = useState(false);
 
   const closeUploadBlogModal = () => {

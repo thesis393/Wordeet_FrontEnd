@@ -132,6 +132,218 @@ export type WordeetContract = {
 					"type": "string"
 				}
 			]
+		},
+		{
+			"name": "editBlogPost",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "nftcollectionaddress",
+					"type": "string"
+				},
+				{
+					"name": "ntotalcollecter",
+					"type": "u8"
+				},
+				{
+					"name": "upvote",
+					"type": "u32"
+				},
+				{
+					"name": "downvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "addCollector",
+			"accounts": [
+				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "collectorInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "collector",
+					"isMut": true,
+					"isSigner": true
+				},
+				{
+					"name": "systemProgram",
+					"isMut": false,
+					"isSigner": false
+				}
+			],
+			"args": [
+				{
+					"name": "username",
+					"type": "string"
+				},
+				{
+					"name": "avatar",
+					"type": "string"
+				},
+				{
+					"name": "walletaddress",
+					"type": "string"
+				},
+				{
+					"name": "nftMintAddress",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"name": "editBlogNftcollectionaddress",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "nftcollectionaddress",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"name": "editBlogNtotalcollecter",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "ntotalcollecter",
+					"type": "u8"
+				}
+			]
+		},
+		{
+			"name": "editBlogUpvote",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "upvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "editBlogDownvote",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "downvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "addVote",
+			"accounts": [
+				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voteInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voter",
+					"isMut": true,
+					"isSigner": true
+				},
+				{
+					"name": "systemProgram",
+					"isMut": false,
+					"isSigner": false
+				}
+			],
+			"args": [
+				{
+					"name": "status",
+					"type": "u8"
+				}
+			]
+		},
+		{
+			"name": "editVote",
+			"accounts": [
+				{
+					"name": "voteInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voter",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "status",
+					"type": "u8"
+				}
+			]
 		}
 	],
 	"accounts": [
@@ -185,6 +397,14 @@ export type WordeetContract = {
 				"kind": "struct",
 				"fields": [
 					{
+						"name": "blogPost",
+						"type": "publicKey"
+					},
+					{
+						"name": "collector",
+						"type": "publicKey"
+					},
+					{
 						"name": "avatar",
 						"type": "string"
 					},
@@ -203,6 +423,34 @@ export type WordeetContract = {
 					{
 						"name": "nftMintAddress",
 						"type": "string"
+					},
+					{
+						"name": "createdAt",
+						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "voteInfo",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "blogPost",
+						"type": "publicKey"
+					},
+					{
+						"name": "voter",
+						"type": "publicKey"
+					},
+					{
+						"name": "status",
+						"type": "u8"
+					},
+					{
+						"name": "createdAt",
+						"type": "i64"
 					}
 				]
 			}
@@ -258,7 +506,7 @@ export type WordeetContract = {
 					},
 					{
 						"name": "ntotalcollecter",
-						"type": "u32"
+						"type": "u8"
 					},
 					{
 						"name": "createdAt",
@@ -293,6 +541,11 @@ export type WordeetContract = {
 			"code": 6004,
 			"name": "TitleTooLong",
 			"msg": "The title is too long"
+		},
+		{
+			"code": 6005,
+			"name": "NFTCollectionAddressNull",
+			"msg": "The nftcollectionaddress is null"
 		}
 	]
 };
@@ -431,6 +684,218 @@ export const IDL: WordeetContract = {
 					"type": "string"
 				}
 			]
+		},
+		{
+			"name": "editBlogPost",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "nftcollectionaddress",
+					"type": "string"
+				},
+				{
+					"name": "ntotalcollecter",
+					"type": "u8"
+				},
+				{
+					"name": "upvote",
+					"type": "u32"
+				},
+				{
+					"name": "downvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "addCollector",
+			"accounts": [
+				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "collectorInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "collector",
+					"isMut": true,
+					"isSigner": true
+				},
+				{
+					"name": "systemProgram",
+					"isMut": false,
+					"isSigner": false
+				}
+			],
+			"args": [
+				{
+					"name": "username",
+					"type": "string"
+				},
+				{
+					"name": "avatar",
+					"type": "string"
+				},
+				{
+					"name": "walletaddress",
+					"type": "string"
+				},
+				{
+					"name": "nftMintAddress",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"name": "editBlogNftcollectionaddress",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "nftcollectionaddress",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"name": "editBlogNtotalcollecter",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "ntotalcollecter",
+					"type": "u8"
+				}
+			]
+		},
+		{
+			"name": "editBlogUpvote",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "upvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "editBlogDownvote",
+			"accounts": [
+				{
+					"name": "blogPost",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "owner",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "downvote",
+					"type": "u32"
+				}
+			]
+		},
+		{
+			"name": "addVote",
+			"accounts": [
+				{
+					"name": "postAccount",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voteInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voter",
+					"isMut": true,
+					"isSigner": true
+				},
+				{
+					"name": "systemProgram",
+					"isMut": false,
+					"isSigner": false
+				}
+			],
+			"args": [
+				{
+					"name": "status",
+					"type": "u8"
+				}
+			]
+		},
+		{
+			"name": "editVote",
+			"accounts": [
+				{
+					"name": "voteInfo",
+					"isMut": true,
+					"isSigner": false
+				},
+				{
+					"name": "voter",
+					"isMut": true,
+					"isSigner": true
+				}
+			],
+			"args": [
+				{
+					"name": "status",
+					"type": "u8"
+				}
+			]
 		}
 	],
 	"accounts": [
@@ -484,6 +949,14 @@ export const IDL: WordeetContract = {
 				"kind": "struct",
 				"fields": [
 					{
+						"name": "blogPost",
+						"type": "publicKey"
+					},
+					{
+						"name": "collector",
+						"type": "publicKey"
+					},
+					{
 						"name": "avatar",
 						"type": "string"
 					},
@@ -502,6 +975,34 @@ export const IDL: WordeetContract = {
 					{
 						"name": "nftMintAddress",
 						"type": "string"
+					},
+					{
+						"name": "createdAt",
+						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "voteInfo",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "blogPost",
+						"type": "publicKey"
+					},
+					{
+						"name": "voter",
+						"type": "publicKey"
+					},
+					{
+						"name": "status",
+						"type": "u8"
+					},
+					{
+						"name": "createdAt",
+						"type": "i64"
 					}
 				]
 			}
@@ -557,7 +1058,7 @@ export const IDL: WordeetContract = {
 					},
 					{
 						"name": "ntotalcollecter",
-						"type": "u32"
+						"type": "u8"
 					},
 					{
 						"name": "createdAt",
@@ -592,6 +1093,11 @@ export const IDL: WordeetContract = {
 			"code": 6004,
 			"name": "TitleTooLong",
 			"msg": "The title is too long"
+		},
+		{
+			"code": 6005,
+			"name": "NFTCollectionAddressNull",
+			"msg": "The nftcollectionaddress is null"
 		}
 	]
 };

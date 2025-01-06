@@ -575,8 +575,7 @@ export const getBlogNFTCollectionAddress = async (blogId: string): Promise<strin
     // Return the address
     return response.data.nftCollectionAddress;
   } catch (error: any) {
-    console.error('Error fetching NFT collection address:', error.response?.data || error.message);
-
+    console.log('Error fetching NFT collection address:');
     // Return null in case of an error
     return null;
   }
@@ -667,3 +666,16 @@ export const searchBlogsByText = async (searchText: string) => {
     return null; // Return null or handle error appropriately
   }
 };
+
+export const getDataFromIrys = async (irysUrl: string) => {
+  try {
+    console.log("getDataFromIrys start ");
+
+    const response = await axiosInstance.get(irysUrl)
+    console.log("getDataFromIrys response ", response);
+    return response
+  } catch (error: any) {
+    console.log("getDataFromIrys error: ", error)
+    return null
+  }
+}

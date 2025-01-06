@@ -3,7 +3,7 @@ import UserCard from "@/components/card/user";
 import Layout from "@/components/layout";
 import { Metadata } from "next";
 import { useEffect, useState } from "react";
-import { getTopCreators, getTrendingBlogs } from "../api";
+import { getDataFromIrys, getTopCreators, getTrendingBlogs } from "../api";
 import BlogCard from "@/components/card/blogs";
 import { useAppContext } from "@/provider/AppProvider";
 import { faL } from "@fortawesome/free-solid-svg-icons";
@@ -26,23 +26,30 @@ export default function Wordeets() {
         const allBlogs = await program.account.blogPost.all();
 
         // Map blog data to formatted posts
-        const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
-          _id: publicKey.toString(),
-          authorAddress: account.owner.toString(),
-          username: account.username,
-          coverimage: account.coverimage,
-          category: account.category,
-          createdAt: account.createdAt,
-          title: account.title,
-          content: account.content,
-          upvote: account.upvote,
-          downvote: account.downvote,
-          walletaddress: account.walletaddress,
-          nftcollectionaddress: account.nftcollectionaddress,
-          ntotalcollector: account.ntotalcollecter,
-          status: 1,
-          lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
-        }));
+        const formattedBlogs = await Promise.all(
+          allBlogs.map(async ({ publicKey, account }) => {
+            const irysResponse = await getDataFromIrys(`${account.content}`);
+            const content = irysResponse?.data?.content || account.content; // Use fetched content or fallback to original
+
+            return {
+              _id: publicKey.toString(),
+              authorAddress: account.owner.toString(),
+              username: account.username,
+              coverimage: account.coverimage,
+              category: account.category,
+              createdAt: account.createdAt,
+              title: account.title,
+              content: content,
+              upvote: account.upvote,
+              downvote: account.downvote,
+              walletaddress: account.walletaddress,
+              nftcollectionaddress: account.nftcollectionaddress,
+              ntotalcollector: account.ntotalcollecter,
+              status: 1,
+              lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
+            };
+          })
+        );
 
         // Sort blogs by creation date
         const sortedBlogs = formattedBlogs.sort(
@@ -76,9 +83,9 @@ export default function Wordeets() {
       }
     };
 
-    setLoading(true);
+    // setLoading(true);
     fetchBlogs();
-    setLoading(false);
+    // setLoading(false);
   }, []);
 
   //Backend Way

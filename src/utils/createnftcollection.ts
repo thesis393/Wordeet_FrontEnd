@@ -1,3 +1,4 @@
+"use client"
 import {
 	createNft,
 	mplTokenMetadata,
@@ -8,12 +9,20 @@ import {
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 // import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
-import { clusterApiUrl, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { clusterApiUrl, Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters'
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { uploadSingleDataIrys } from "@/app/api";
+import { addCollector, getBlogNFTCollectionAddress, getDataFromIrys, updateBlogNFTCollectionAddress, uploadSingleDataIrys } from "@/app/api";
+import { mintNft } from "./createnft";
+import useProgram from "@/app/anchor/config";
+import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+
 
 const connection = new Connection("https://devnet.helius-rpc.com/?api-key=926da061-472b-438a-bbb1-f289333c4126");
+
+
+
 
 
 export const createNftCollection = async (collectionData: any, wallet: WalletContextState): Promise<any> => {

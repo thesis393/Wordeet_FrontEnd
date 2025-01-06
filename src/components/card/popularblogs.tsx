@@ -23,7 +23,7 @@ import {
 import ReadTipTap from "../tiptap/readtiptap";
 import { useRouter } from "next/navigation";
 import { useDraftBlogInfo } from "@/provider/DraftBlogProvider";
-import { createNftCollection } from "@/utils/createnftcollectioni";
+import { createNftCollection } from "@/utils/createnftcollection";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { mintNft } from "@/utils/createnft";
 import { useUserInfo } from "@/provider/UserInfoProvider";

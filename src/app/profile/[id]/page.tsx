@@ -18,7 +18,7 @@ import {
   Tabs,
 } from "@nextui-org/react";
 import { useEffect, useState } from "react";
-import { IBlogCard, readUser } from "../../api";
+import { getDataFromIrys, INewBlogCard, readUser } from "../../api";
 import { useParams } from "next/navigation";
 import { readUserInfo } from "@/utils/sinutil";
 
@@ -39,7 +39,7 @@ export default function OtherProfile() {
   const [tempuserInfo, setTempUserInfo] = useState<any>();
   const [tempwalletAddress, SetTempWalletAddress] = useState<any>();
   const { walletAddress } = useWalletAddress();
-  const { setUserInfo } = useUserInfo();
+  const { userInfo, setUserInfo } = useUserInfo();
   const { setLoading } = useAppContext();
   const [createdBlogCnt, setCreatedBlogCnt] = useState(0);
   const [collectedBlogCnt, setCollectedBlogCnt] = useState(0);
@@ -73,7 +73,7 @@ export default function OtherProfile() {
           console.log("readUserInfo: ", userProfile);
           setTempUserInfo(userProfile);
 
-          if (userProfile.walletaddress == walletAddress) {
+          if (userInfo.walletaddress == walletAddress) {
             setUserInfo(userProfile);
           }
         } else {
@@ -92,23 +92,30 @@ export default function OtherProfile() {
       const allBlogs = await program.account.blogPost.all();
 
       // Map blog data to formatted posts
-      const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
-        _id: publicKey.toString(),
-        authorAddress: account.owner.toString(),
-        username: account.username,
-        coverimage: account.coverimage,
-        category: account.category,
-        createdAt: account.createdAt,
-        title: account.title,
-        content: account.content,
-        upvote: account.upvote,
-        downvote: account.downvote,
-        walletaddress: account.walletaddress,
-        nftcollectionaddress: account.nftcollectionaddress,
-        ntotalcollector: account.ntotalcollecter,
-        status: 1,
-        lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
-      }));
+      const formattedBlogs = await Promise.all(
+        allBlogs.map(async ({ publicKey, account }) => {
+          const irysResponse = await getDataFromIrys(`${account.content}`);
+          const content = irysResponse?.data?.content || account.content; // Use fetched content or fallback to original
+          console.log("profile content", content);
+          return {
+            _id: publicKey.toString(),
+            authorAddress: account.owner.toString(),
+            username: account.username,
+            coverimage: account.coverimage,
+            category: account.category,
+            createdAt: account.createdAt,
+            title: account.title,
+            content: content,
+            upvote: account.upvote,
+            downvote: account.downvote,
+            walletaddress: account.walletaddress,
+            nftcollectionaddress: account.nftcollectionaddress,
+            ntotalcollector: account.ntotalcollecter,
+            status: 1,
+            lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
+          };
+        })
+      );
 
       const createdBlogs = formattedBlogs.filter(
         (blog) => blog.walletaddress === walletAddress
@@ -150,7 +157,7 @@ export default function OtherProfile() {
         try {
           SetTempWalletAddress(id);
           console.log("step 1");
-          setLoading(true);
+          // setLoading(true);
 
           //Smart contract Way
           await getUserProfileById(id);
@@ -173,7 +180,7 @@ export default function OtherProfile() {
         } catch (error) {
           console.log("getUserProfileById get error: ", error);
         }
-        setLoading(false);
+        // setLoading(false);
       }
     };
     if (params) {
@@ -355,9 +362,11 @@ export default function OtherProfile() {
                     }
                   >
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {createdBlogs.map((article: IBlogCard, idx: number) => (
-                        <BlogCard {...article} key={idx} />
-                      ))}
+                      {createdBlogs.map(
+                        (article: INewBlogCard, idx: number) => (
+                          <BlogCard {...article} key={idx} />
+                        )
+                      )}
                     </div>
                   </Tab>
                   <Tab
@@ -373,9 +382,11 @@ export default function OtherProfile() {
                     }
                   >
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                      {collectedBlogs.map((article: IBlogCard, idx: number) => (
-                        <BlogCard {...article} key={idx} />
-                      ))}
+                      {collectedBlogs.map(
+                        (article: INewBlogCard, idx: number) => (
+                          <BlogCard {...article} key={idx} />
+                        )
+                      )}
                     </div>
                   </Tab>
                   <Tab
@@ -392,7 +403,7 @@ export default function OtherProfile() {
                   >
                     <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                       {tempuserInfo?.blogs?.drafts?.data.map(
-                        (article: IBlogCard, idx: number) => (
+                        (article: INewBlogCard, idx: number) => (
                           <BlogCard {...article} key={idx} />
                         )
                       )}

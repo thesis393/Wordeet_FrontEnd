@@ -6,6 +6,7 @@ import {
   fetchBlog,
   getBlog,
   getClientBlogs,
+  getDataFromIrys,
   getRecentLimitBlogsExcludingUser,
   IBlogCard,
   NewArticle,
@@ -78,24 +79,33 @@ const BlogPage = () => {
         if (blog?.walletaddress && program) {
           const allBlogs = await program.account.blogPost.all();
           // Map blog data to formatted posts
-          const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
-            _id: publicKey.toString(),
-            owner: account.owner.toString(),
-            username: account.username,
-            coverimage: account.coverimage,
-            category: account.category,
-            createdAt: account.createdAt,
-            title: account.title,
-            content: account.content,
-            upvote: account.upvote,
-            downvote: account.downvote,
-            keywords: account.keywords,
-            walletaddress: account.walletaddress,
-            nftcollectionaddress: account.nftcollectionaddress,
-            ntotalcollector: account.ntotalcollecter,
-            status: 1,
-            lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
-          }));
+          const formattedBlogs = await Promise.all(
+            allBlogs.map(async ({ publicKey, account }) => {
+              const irysResponse = await getDataFromIrys(`${account.content}`);
+              const content = irysResponse?.data?.content || account.content; // Use fetched content or fallback to original
+
+              return {
+                _id: publicKey.toString(),
+                owner: account.owner.toString(),
+                username: account.username,
+                coverimage: account.coverimage,
+                category: account.category,
+                createdAt: account.createdAt,
+                title: account.title,
+                content,
+                upvote: account.upvote,
+                downvote: account.downvote,
+                keywords: account.keywords,
+                walletaddress: account.walletaddress,
+                nftcollectionaddress: account.nftcollectionaddress,
+                ntotalcollector: account.ntotalcollecter,
+                status: 1,
+                lowercaseTitle: account.title
+                  .replace(/\s+/g, "-")
+                  .toLowerCase(),
+              };
+            })
+          );
 
           const filteredBlogs = formattedBlogs.filter(
             (blog) => blog._id !== myid && blog.walletaddress === walletaddress
@@ -195,6 +205,8 @@ const BlogPage = () => {
           const aBlog = await program.account.blogPost.fetch(pdaPublicKey);
 
           if (aBlog) {
+            const irysResponse = await getDataFromIrys(`${aBlog.content}`);
+            const content = irysResponse?.data?.content || aBlog.content; // Use fetched content or fallback to original
             // Map blog data to formatted posts
             const formattedBlog = {
               _id: id,
@@ -204,7 +216,7 @@ const BlogPage = () => {
               category: aBlog.category,
               createdAt: aBlog.createdAt,
               title: aBlog.title,
-              content: aBlog.content,
+              content,
               upvote: aBlog.upvote,
               downvote: aBlog.downvote,
               keywords: aBlog.keywords,

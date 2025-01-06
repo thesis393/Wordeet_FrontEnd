@@ -3,6 +3,7 @@
 import {
   Article,
   fetchBlog,
+  getDataFromIrys,
   getRecentBlogs,
   getTopCreators,
   getTrendingBlogs,
@@ -28,6 +29,11 @@ import TopCreaterCard from "@/components/card/topcreater";
 import useProgram from "@/app/anchor/config";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useSearchInfo } from "@/provider/SearchInfoProvider";
+import {
+  Pagination as Pagination2,
+  PaginationItem,
+  PaginationCursor,
+} from "@nextui-org/react";
 
 const BlogListPage = () => {
   const [domLoaded, setDomLoaded] = useState(false);
@@ -46,11 +52,17 @@ const BlogListPage = () => {
   const [nLimitTopUsers, setLimitTopUsers] = useState<number>(5);
   const [allBlogsList, setAllBlogsList] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentBlogs, setCurrentBlogs] = useState<any[]>([]);
 
   const { publicKey } = useWallet();
   const { searchInfo } = useSearchInfo();
 
   const program = useProgram();
+
+  useEffect(() => {
+    // Set the initial blogs when the component mounts or when recentBlogsList changes
+    pageChange(1); // Start with page 1
+  }, [recentBlogsList]);
 
   useEffect(() => {
     setDomLoaded(true);
@@ -62,23 +74,30 @@ const BlogListPage = () => {
         const allBlogs = await program.account.blogPost.all();
 
         // Map blog data to formatted posts
-        const formattedBlogs = allBlogs.map(({ publicKey, account }) => ({
-          _id: publicKey.toString(),
-          authorAddress: account.owner.toString(),
-          username: account.username,
-          coverimage: account.coverimage,
-          category: account.category,
-          createdAt: account.createdAt,
-          title: account.title,
-          content: account.content,
-          upvote: account.upvote,
-          downvote: account.downvote,
-          walletaddress: account.walletaddress,
-          nftcollectionaddress: account.nftcollectionaddress,
-          ntotalcollector: account.ntotalcollecter,
-          status: 1,
-          lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
-        }));
+        const formattedBlogs = await Promise.all(
+          allBlogs.map(async ({ publicKey, account }) => {
+            const irysResponse = await getDataFromIrys(`${account.content}`);
+            const content = irysResponse?.data?.content || account.content; // Use fetched content or fallback to original
+
+            return {
+              _id: publicKey.toString(),
+              authorAddress: account.owner.toString(),
+              username: account.username,
+              coverimage: account.coverimage,
+              category: account.category, // Updated to use fetched data
+              createdAt: account.createdAt,
+              title: account.title,
+              content: content,
+              upvote: account.upvote,
+              downvote: account.downvote,
+              walletaddress: account.walletaddress,
+              nftcollectionaddress: account.nftcollectionaddress,
+              ntotalcollector: account.ntotalcollecter,
+              status: 1,
+              lowercaseTitle: account.title.replace(/\s+/g, "-").toLowerCase(),
+            };
+          })
+        );
 
         // Sort blogs by creation date
         const sortedBlogs = formattedBlogs.sort(
@@ -106,7 +125,7 @@ const BlogListPage = () => {
 
         setTotalBlogs(sortedBlogs.length);
         setAllBlogsList(sortedBlogs);
-        setRecentBlogsList(sortedBlogs.slice(0, nLimitRecentBlogs));
+        setRecentBlogsList(sortedBlogs);
         setBlogs(trendBlogs);
         setTopUsers(formattedUsers);
         console.log("Total Blogs Count:", sortedBlogs.length);
@@ -115,9 +134,9 @@ const BlogListPage = () => {
       }
     };
 
-    setLoading(true);
+    // setLoading(true);
     fetchBlogs();
-    setLoading(false);
+    // setLoading(false);
 
     //Backend Way
     // const fetchRecentData = async () => {
@@ -170,7 +189,7 @@ const BlogListPage = () => {
     );
 
     console.log("filteredPosts", filteredPosts);
-    setRecentBlogsList(filteredPosts.slice(0, nLimitRecentBlogs));
+    setRecentBlogsList(filteredPosts);
   }, [selectedCategory, searchInfo]);
 
   const [blog, setBlog] = useState<any>();
@@ -207,6 +226,21 @@ const BlogListPage = () => {
     }
   }, [params]);
 
+  const pageChange = (page: number) => {
+    console.log("pageChange : " + page);
+
+    // Calculate the start and end indices for slicing the recentBlogsList
+    const itemsPerPage = 3;
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    // Slice the blogs based on the current page
+    const slicedBlogs = recentBlogsList.slice(startIndex, endIndex);
+
+    // Update the state with the sliced blogs
+    setCurrentBlogs(slicedBlogs);
+  };
+
   return (
     <>
       <Layout>
@@ -242,19 +276,19 @@ const BlogListPage = () => {
                 </CategoryButton>
                 <CategoryButton
                   className="bg-green-200"
-                  onClick={() => setSelectedCategory("defi")}
+                  onClick={() => setSelectedCategory("de-fi")}
                 >
                   DeFi
                 </CategoryButton>
                 <CategoryButton
                   className="bg-purple-200"
-                  onClick={() => setSelectedCategory("depin")}
+                  onClick={() => setSelectedCategory("de-pin")}
                 >
                   DePin
                 </CategoryButton>
                 <CategoryButton
                   className="bg-blue-200"
-                  onClick={() => setSelectedCategory("desci")}
+                  onClick={() => setSelectedCategory("de-sci")}
                 >
                   DeSci
                 </CategoryButton>
@@ -275,16 +309,25 @@ const BlogListPage = () => {
 
             <div className="flex lg:flex-row gap-8 mt-10">
               <div className="lg:flex-shrink-0 lg:basis-2/3">
-                {recentBlogsList?.length > 0 ? (
+                {currentBlogs.length > 0 ? (
                   <>
                     <p className="text-2xl text-start">Recent Posts</p>
                     <div className="mt-10">
                       <div className="flex flex-col gap-8">
-                        {recentBlogsList?.map((article, idx: number) => (
-                          <WideBlogCard {...article} key={idx} />
+                        {currentBlogs.map((article, idx: number) => (
+                          <TrendBlogCard {...article} key={idx} />
                         ))}
                       </div>
                     </div>
+                    <Pagination2
+                      className="mt-10"
+                      loop
+                      showControls
+                      color="success"
+                      initialPage={1}
+                      total={Math.ceil(recentBlogsList.length / 3)}
+                      onChange={(page: number) => pageChange(page)}
+                    />
                   </>
                 ) : (
                   <></>
@@ -301,7 +344,7 @@ const BlogListPage = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="flex justify-center mt-5">
+                    {/* <div className="flex justify-center mt-5">
                       {recentBlogsList?.length < totalBlogs && (
                         <Button
                           onClick={getViewMoreBlogs}
@@ -312,7 +355,7 @@ const BlogListPage = () => {
                           {isLoading ? "Loading..." : "View More"}
                         </Button>
                       )}
-                    </div>
+                    </div> */}
                   </>
                 ) : (
                   <></>
@@ -328,19 +371,19 @@ const BlogListPage = () => {
                     </CategoryButton>
                     <CategoryButton
                       className="bg-green-200"
-                      onClick={() => setSelectedCategory("defi")}
+                      onClick={() => setSelectedCategory("de-fi")}
                     >
                       DeFi
                     </CategoryButton>
                     <CategoryButton
                       className="bg-purple-200"
-                      onClick={() => setSelectedCategory("depin")}
+                      onClick={() => setSelectedCategory("de-pin")}
                     >
                       DePin
                     </CategoryButton>
                     <CategoryButton
                       className="bg-blue-200"
-                      onClick={() => setSelectedCategory("desci")}
+                      onClick={() => setSelectedCategory("de-sci")}
                     >
                       DeSci
                     </CategoryButton>

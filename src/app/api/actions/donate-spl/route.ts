@@ -171,6 +171,7 @@ export const POST = async (req: Request) => {
 		const payload: ActionPostResponse = await createPostResponse({
 			fields: {
 				type: 'transaction',
+				// @ts-ignore
 				transaction,
 				message: `Donated ${amount} USDC to ${toPubkey.toBase58()}`,
 			},

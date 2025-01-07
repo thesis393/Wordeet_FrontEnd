@@ -669,7 +669,11 @@ const TrendBlogCard = (props: INewBlogCard) => {
               </Button>
               <div className="flex flex-row gap-5">
                 <div onClick={(event) => onClickUpvote(event)}>
-                  <FontAwesomeIcon icon={faHeart} /> {props?.upvote}
+                  <FontAwesomeIcon
+                    // @ts-ignore
+                    icon={faHeart}
+                  />{" "}
+                  {props?.upvote}
                 </div>
                 <div onClick={(event) => onClickDownvote(event)}>
                   <FontAwesomeIcon icon={faHeartCrack} /> {props?.downvote}

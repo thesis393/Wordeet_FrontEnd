@@ -170,7 +170,7 @@ export default function OtherProfile() {
       if (id !== undefined) {
         try {
           SetTempWalletAddress(id);
-          console.log("step 1");
+          console.log("step 1 id: ", id);
           // setLoading(true);
 
           //Smart contract Way
@@ -198,6 +198,7 @@ export default function OtherProfile() {
       }
     };
     if (params) {
+      console.log("fetchData start");
       fetchData();
     }
   }, [params]);

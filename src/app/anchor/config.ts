@@ -18,6 +18,7 @@ const useProgram = () => {
 			if (wallet && IDL && WORDEET_PROGRAM_ID) {
 				const provider = new anchor.AnchorProvider(
 					connection,
+					//@ts-ignore
 					wallet,
 					anchor.AnchorProvider.defaultOptions()
 				);

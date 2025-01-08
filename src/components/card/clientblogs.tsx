@@ -101,7 +101,7 @@ const ClientBlogs = (props: NewArticle) => {
                     src={`${writerProfile.avatar}`}
                     width="40"
                   />
-                  <p className="text-sm">{props.username}</p>
+                  <p className="text-sm">{writerProfile.username}</p>
                 </Link>
               </div>
               <div>

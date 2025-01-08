@@ -35,7 +35,14 @@ import { PublicKey } from "@solana/web3.js";
 import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 import { utf8 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import { write } from "fs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeartCrack, faHeart } from "@fortawesome/free-solid-svg-icons";
+import { useUserInfo } from "@/provider/UserInfoProvider";
+import * as web3 from "@solana/web3.js";
 
+interface VoteInfo {
+  status: number; // 1 = upvote, 2 = downvote
+}
 const BlogPage = () => {
   const [blog, setBlog] = useState<NewArticle>();
   const [content, setContent] = useState("");
@@ -50,9 +57,12 @@ const BlogPage = () => {
   const [collectorInfo, setCollectorInfo] = useState<any[]>([]);
   const [irysTransaction, setIrysTransaction] = useState<string | null>(null);
   const [domLoaded, setDomLoaded] = useState(false);
+  const [myVoteInfo, setVoteInfo] = useState<VoteInfo>({ status: 0 });
+  const [transactionPending, setTransactionPending] = useState(false);
 
   const params = useParams();
   const program = useProgram();
+  const { userInfo } = useUserInfo();
 
   // Function to open Tip modal
   const openTipModal = () => {
@@ -326,6 +336,160 @@ const BlogPage = () => {
   //   }
   // }, [params]);
 
+  // Function to create Vote Info (if it doesn't exist)
+  const createVoteInfo = async (voteStatus: number = 0) => {
+    if (program && params.id) {
+      try {
+        setTransactionPending(true);
+        console.log("createVoteInfo start: " + voteStatus);
+
+        const blogPdaPublicKey = new PublicKey(params.id);
+        const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+        const [votePda] = findProgramAddressSync(
+          [
+            utf8.encode("vote"),
+            blogPdaPublicKey.toBuffer(),
+            ownerPublicKey.toBuffer(),
+          ],
+          program.programId
+        );
+
+        const tx = await program.methods
+          .addVote(voteStatus)
+          .accounts({
+            postAccount: blogPdaPublicKey,
+            voteInfo: votePda,
+            voter: ownerPublicKey,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log(`Transaction successful: ${tx}`);
+        setTransactionPending(false);
+
+        // Set the vote info after creation (initialize status)
+        setVoteInfo({ status: voteStatus }); // This sets the status based on what was just created
+        return true;
+      } catch (error) {
+        console.log("Error creating vote account:", error);
+        setTransactionPending(false);
+        return false;
+      }
+    }
+    return false;
+  };
+
+  // Function to fetch Vote Info
+  const fetchVoteInfo = async () => {
+    if (program && params.id) {
+      const blogPdaPublicKey = new PublicKey(params.id);
+
+      const blogdata = await program.account.blogPost.fetch(blogPdaPublicKey);
+
+      console.log("fetchVoteInfo blogdata:", blogdata, blogPdaPublicKey);
+      const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+      const [votePda] = findProgramAddressSync(
+        [
+          utf8.encode("vote"),
+          blogPdaPublicKey.toBuffer(),
+          ownerPublicKey.toBuffer(),
+        ],
+        program.programId
+      );
+
+      try {
+        const voteInfo = await program.account.voteInfo.fetch(votePda);
+        console.log("fetchVoteInfo: ", voteInfo);
+        return voteInfo;
+      } catch (error) {
+        console.log("Error fetching vote info:", error);
+        return null;
+      }
+    }
+    return null;
+  };
+  // Function to edit Vote Status
+  const editVoteStatus = async (newStatus: number) => {
+    if (program && !transactionPending && params.id) {
+      setTransactionPending(true);
+
+      const blogPdaPublicKey = new PublicKey(params.id);
+      const ownerPublicKey = new PublicKey(userInfo?.walletaddress);
+      const [votePda] = findProgramAddressSync(
+        [
+          utf8.encode("vote"),
+          blogPdaPublicKey.toBuffer(),
+          ownerPublicKey.toBuffer(),
+        ],
+        program.programId
+      );
+
+      try {
+        const voteInfo = await fetchVoteInfo();
+
+        if (voteInfo) {
+          // If vote info exists and needs to be updated
+          if (voteInfo.status !== newStatus) {
+            const tx = await program.methods
+              .editVote(newStatus)
+              .accounts({
+                postAccount: blogPdaPublicKey,
+                voteInfo: votePda,
+                voter: ownerPublicKey,
+              })
+              .rpc();
+
+            console.log(`Transaction successful: ${tx}`);
+            setVoteInfo({ status: newStatus }); // Set the new status in myVoteInfo
+          }
+        } else {
+          console.log("Vote info does not exist. Creating...");
+          // If vote info doesn't exist, create it with the new status
+          await createVoteInfo(newStatus);
+        }
+
+        setTransactionPending(false);
+      } catch (error) {
+        console.log("Error handling vote status:", error);
+        setTransactionPending(false);
+      }
+    }
+  };
+
+  // Function to handle Upvote click
+  const onClickUpvote = async (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
+
+    console.log("onClickUpvote: " + myVoteInfo.status);
+    // Only proceed if the current status is not already upvote
+    if (myVoteInfo.status !== 1) {
+      const newStatus =
+        myVoteInfo.status === 0 || myVoteInfo.status === 2
+          ? 1
+          : myVoteInfo.status;
+
+      // Call the function to edit the vote status
+      await editVoteStatus(newStatus);
+    }
+  };
+
+  // Function to handle Downvote click
+  const onClickDownvote = async (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
+
+    console.log("onClickDownvote: " + myVoteInfo.status);
+    // Only proceed if the current status is not already downvote
+    if (myVoteInfo.status !== 2) {
+      const newStatus =
+        myVoteInfo.status === 0 || myVoteInfo.status === 1
+          ? 2
+          : myVoteInfo.status;
+
+      // Call the function to edit the vote status
+      await editVoteStatus(newStatus);
+    }
+  };
+
   const screenWidth = useScreenWidth();
 
   return (
@@ -388,7 +552,15 @@ const BlogPage = () => {
                     tip
                   </Button>
                 </div>
-                <div>
+                <div className="flex flex-row items-center gap-5">
+                  <div className="flex flex-row gap-5">
+                    <div onClick={(event) => onClickUpvote(event)}>
+                      <FontAwesomeIcon icon={faHeart} /> {blog?.upvote}
+                    </div>
+                    <div onClick={(event) => onClickDownvote(event)}>
+                      <FontAwesomeIcon icon={faHeartCrack} /> {blog?.downvote}
+                    </div>
+                  </div>
                   <Button className="text-right bg-primary shadow-lg text-white">
                     Collect
                   </Button>

@@ -132,7 +132,7 @@ const BlogListPage = () => {
         setAllBlogsList(sortedBlogs);
         setRecentBlogsList(sortedBlogs);
         setBlogs(trendBlogs);
-        setTopUsers(formattedUsers);
+        setTopUsers(topUsers);
         console.log("Total Blogs Count:", sortedBlogs.length);
       } catch (error) {
         console.log("Error fetching blogs:", error);

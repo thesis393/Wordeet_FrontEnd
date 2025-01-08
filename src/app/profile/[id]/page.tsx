@@ -37,6 +37,7 @@ import { PublicKey } from "@solana/web3.js";
 export default function OtherProfile() {
   const [domLoaded, setDomLoaded] = useState(false);
   const [tempuserInfo, setTempUserInfo] = useState<any>();
+  const [draftInfo, setDraftInfo] = useState<any>();
   const [tempwalletAddress, SetTempWalletAddress] = useState<any>();
   const { walletAddress } = useWalletAddress();
   const { userInfo, setUserInfo } = useUserInfo();
@@ -178,19 +179,16 @@ export default function OtherProfile() {
           await getUserBlogsById(id);
 
           //Backend Way
-          // const result = await readUserInfo(id);
-          // if (result) {
-          //   console.log(id, "'s User Info step 1", result);
-          //   setTempUserInfo(result);
-          //   console.log(
-          //     "step 2",
-          //     walletAddress,
-          //     tempuserInfo?.user?.walletaddress
-          //   );
-          //   if (tempuserInfo?.user?.walletaddress == walletAddress) {
-          //     setUserInfo(tempuserInfo.user);
-          //   }
-          // }
+          const result = await readUserInfo(id);
+          if (result) {
+            console.log(id, "'s User Info step 1", result);
+            setDraftInfo(result);
+            console.log(
+              "step 2",
+              walletAddress,
+              tempuserInfo?.user?.walletaddress
+            );
+          }
         } catch (error) {
           console.log("getUserProfileById get error: ", error);
         }
@@ -341,7 +339,7 @@ export default function OtherProfile() {
               </div>
               <div className="text-center">
                 <span className="block font-semibold text-lg">
-                  {tempuserInfo?.blogs?.drafts?.count}
+                  {draftInfo?.blogs?.drafts?.count}
                 </span>
                 <span className="text-sm">Draft</span>
               </div>
@@ -375,7 +373,7 @@ export default function OtherProfile() {
                     </div>
                   }
                 >
-                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
+                  <div className="justify-center gap-4 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                     {createdBlogs.map((article: INewBlogCard, idx: number) => (
                       <BlogCard {...article} key={idx} />
                     ))}
@@ -393,7 +391,7 @@ export default function OtherProfile() {
                     </div>
                   }
                 >
-                  <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
+                  <div className="justify-center gap-4 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
                     {collectedBlogs.map(
                       (article: INewBlogCard, idx: number) => (
                         <BlogCard {...article} key={idx} />
@@ -408,13 +406,13 @@ export default function OtherProfile() {
                       <FontAwesomeIcon icon={faRibbon} />
                       <span>Draft</span>
                       <Chip size="sm" variant="faded">
-                        {tempuserInfo?.blogs?.drafts?.count}
+                        {draftInfo?.blogs?.drafts?.count}
                       </Chip>
                     </div>
                   }
                 >
                   <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[360px] 2xl:grid-rows-[400px] mydiv">
-                    {tempuserInfo?.blogs?.drafts?.data.map(
+                    {draftInfo?.blogs?.drafts?.data.map(
                       (article: INewBlogCard, idx: number) => (
                         <BlogCard {...article} key={idx} />
                       )

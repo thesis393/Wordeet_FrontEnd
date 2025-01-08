@@ -133,7 +133,7 @@ export default function Wordeets() {
         {blogs?.length > 0 ? (
           <>
             <p className="mt-12 font-medium text-2xl text-center">Top Blogs</p>
-            <div className="justify-center gap-8 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[400px] mydiv">
+            <div className="justify-center gap-4 grid grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_360px)))] 2xl:grid-cols-[repeat(auto-fill,_minmax(auto,_min(100%,_400px)))] grid-rows-[400px] mydiv">
               {blogs.map((blog: any, idx: number) => (
                 <BlogCard {...blog} key={idx} />
               ))}

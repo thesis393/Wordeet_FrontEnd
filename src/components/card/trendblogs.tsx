@@ -37,8 +37,7 @@ import * as web3 from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { publicKey } from "@metaplex-foundation/umi";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeartCrack } from "@fortawesome/free-solid-svg-icons";
-import { faHeart } from "@fortawesome/fontawesome-free-solid";
+import { faHeartCrack, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { library, IconProp } from "@fortawesome/fontawesome-svg-core";
 interface VoteInfo {
   status: number; // 1 = upvote, 2 = downvote
@@ -216,7 +215,7 @@ const TrendBlogCard = (props: INewBlogCard) => {
     blogData: any
   ) => {
     console.log(
-      `updateNFTCollectionAddress input param blogId: ${blogId}, nftCollectionAddress: ${nftCollectionAddress}, blogData: ${blogData}`
+      `updateNFTCollectionAddress input param blogId: ${blogId}, nftCollectionAddress: ${nftCollectionAddress}, blogData.walletaddress: ${blogData.walletaddress}`
     );
     if (!blogId || !nftCollectionAddress || !blogData) {
       return false;
@@ -230,7 +229,6 @@ const TrendBlogCard = (props: INewBlogCard) => {
           .editBlogNftcollectionaddress(nftCollectionAddress)
           .accounts({
             blogPost: pdaPublicKey,
-            owner: ownerPublicKey,
           })
           .rpc();
         return true;

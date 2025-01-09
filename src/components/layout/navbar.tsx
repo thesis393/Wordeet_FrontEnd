@@ -31,11 +31,11 @@ const Navbar = (props: any) => {
 
   const menu1 = [
     {
-      title: "dashboard",
+      title: "home",
       path: "/blog/list",
     },
     {
-      title: "wordeets",
+      title: "treding",
       path: "/wordeets",
     },
   ];

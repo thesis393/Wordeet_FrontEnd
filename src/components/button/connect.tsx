@@ -45,10 +45,12 @@ const ConnectButton = (props: any) => {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const createUserProfile = async () => {
+    console.log("createUserProfile start", program);
     if (program && publicKey) {
+      console.log("createUserProfile 1", publicKey?.toBase58());
       try {
         setTransactionPending(true);
-
+        console.log("createUserProfile 2");
         const [userPda] = findProgramAddressSync(
           [utf8.encode("user"), publicKey.toBuffer()],
           program.programId

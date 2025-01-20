@@ -39,6 +39,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeartCrack, faHeart } from "@fortawesome/free-solid-svg-icons";
 import { useUserInfo } from "@/provider/UserInfoProvider";
 import * as web3 from "@solana/web3.js";
+import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
+import { createNftCollection } from "@/utils/createnftcollection";
+import { mintNft } from "@/utils/createnft";
 
 interface VoteInfo {
   status: number; // 1 = upvote, 2 = downvote
@@ -60,6 +63,7 @@ const BlogPage = () => {
   const [myVoteInfo, setVoteInfo] = useState<VoteInfo>({ status: 0 });
   const [transactionPending, setTransactionPending] = useState(false);
 
+  const wallet = useWallet();
   const params = useParams();
   const program = useProgram();
   const { userInfo } = useUserInfo();
@@ -490,6 +494,208 @@ const BlogPage = () => {
     }
   };
 
+  const fetchNFTCollectionAddress = async (
+    blogId: string
+  ): Promise<string | null> => {
+    if (blogId !== undefined && program) {
+      try {
+        const pdaPublicKey = new PublicKey(blogId);
+        const aBlog = await program.account.blogPost.fetch(pdaPublicKey);
+
+        if (aBlog) {
+          const irysResponse = await getDataFromIrys(`${aBlog.content}`);
+          const content = irysResponse?.data?.content || aBlog.content; // Use fetched content or fallback to original
+
+          // Map blog data to formatted posts
+          const formattedBlog = {
+            _id: blogId,
+            owner: aBlog.owner.toString(),
+            username: aBlog.username,
+            coverimage: aBlog.coverimage,
+            category: aBlog.category,
+            createdAt: aBlog.createdAt,
+            title: aBlog.title,
+            content,
+            upvote: aBlog.upvote,
+            downvote: aBlog.downvote,
+            keywords: aBlog.keywords,
+            walletaddress: aBlog.walletaddress,
+            nftcollectionaddress: aBlog.nftcollectionaddress,
+            ntotalcollector: aBlog.ntotalcollecter,
+            status: 1,
+            lowercaseTitle: aBlog.title.replace(/\s+/g, "-").toLowerCase(),
+          };
+          console.log("User get blog", formattedBlog);
+          if (formattedBlog.nftcollectionaddress) {
+            console.log(
+              "NFT Collection Address:",
+              formattedBlog.nftcollectionaddress
+            );
+            return formattedBlog.nftcollectionaddress;
+          } else {
+            console.log("Failed to fetch NFT Collection Address.");
+            return null;
+          }
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("Error get blog", error);
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  const updateNFTCollectionAddress = async (
+    blogId: string,
+    nftCollectionAddress: any,
+    blogData: any
+  ) => {
+    console.log(
+      `updateNFTCollectionAddress input param blogId: ${blogId}, nftCollectionAddress: ${nftCollectionAddress}, blogData.walletaddress: ${blogData.walletaddress}`
+    );
+    if (!blogId || !nftCollectionAddress || !blogData) {
+      return false;
+    }
+    if (program) {
+      try {
+        const pdaPublicKey = new PublicKey(blogId);
+        const ownerPublicKey = new PublicKey(blogData.walletaddress);
+
+        await program.methods
+          .editBlogNftcollectionaddress(nftCollectionAddress)
+          .accounts({
+            blogPost: pdaPublicKey,
+          })
+          .rpc();
+        return true;
+      } catch (error) {
+        console.log("updateNFTCollectionAddress get error: ", error);
+        return false;
+      }
+    }
+    return false;
+  };
+
+  const sleep = async (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  const addCollectorInfo = async (
+    blogId: string,
+    newCollector: any,
+    blogData: any
+  ) => {
+    if (!blogId || !newCollector || !blogData) {
+      console.log(
+        `addCollectorInfo input param error. blogId: ${blogId}, newCollector: ${newCollector}, blogData: ${blogData}`
+      );
+      return false;
+    }
+
+    if (program) {
+      try {
+        const blogPublicKey = new PublicKey(blogId);
+        const ownerPublicKey = new PublicKey(newCollector.walletaddress);
+
+        const [collectorPda] = findProgramAddressSync(
+          [
+            utf8.encode("collector"),
+            blogPublicKey.toBuffer(),
+            Uint8Array.from([blogData.ntotalcollector]),
+          ],
+          program.programId
+        );
+        console.log("ntotalcollector =" + blogData.ntotalcollector);
+        console.log("collectorPda =" + collectorPda);
+        console.log("collector =" + ownerPublicKey);
+        console.log("postAccount =" + blogPublicKey);
+
+        await program.methods
+          .addCollector(
+            newCollector.username,
+            newCollector.avatar,
+            newCollector.walletaddress,
+            newCollector.nftMintAddress
+          )
+          .accounts({
+            postAccount: blogPublicKey,
+            collectorInfo: collectorPda,
+            collector: ownerPublicKey,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          .rpc();
+        console.log("addCollectorInfo success");
+        return true;
+      } catch (error) {
+        console.log("addCollectorInfo get error: ", error);
+        return false;
+      }
+    }
+    return false;
+  };
+
+  const collectBlog = async (
+    blogData: any,
+    wallet: WalletContextState,
+    locationHref: string
+  ) => {
+    let collectionAddress = await fetchNFTCollectionAddress(blogData._id);
+    const maxSymbolLength = 10;
+    let updateResult = true;
+    console.log("collectionAddress", collectionAddress);
+    if (!collectionAddress) {
+      console.log("collectionAddress", collectionAddress);
+      const collectionData = {
+        name: blogData.title,
+        symbol: blogData.title
+          .replace(/\s+/g, "")
+          .substring(0, maxSymbolLength),
+        description: locationHref,
+        image: blogData.coverimage,
+      };
+      collectionAddress = await createNftCollection(collectionData, wallet);
+      console.log("createNftCollection collectionAddress", collectionAddress);
+
+      updateResult = await updateNFTCollectionAddress(
+        blogData._id,
+        collectionAddress,
+        blogData
+      );
+    }
+    if (collectionAddress && updateResult) {
+      const nftData = {
+        name: `${blogData.title}0`,
+        symbol: blogData.title
+          .replace(/\s+/g, "")
+          .substring(0, maxSymbolLength),
+        description: window.location.href,
+        image: blogData.coverimage,
+      };
+
+      const mintAddress = await mintNft(nftData, wallet, collectionAddress);
+      if (mintAddress) {
+        console.log("collectBlog mintAddress: ", mintAddress);
+        const newCollector = {
+          avatar: userInfo?.avatar,
+          username: userInfo?.username,
+          walletaddress: userInfo?.walletaddress,
+          nftMintAddress: mintAddress,
+        };
+        const result = await addCollectorInfo(
+          blogData._id,
+          newCollector,
+          blogData
+        );
+      }
+    }
+  };
+
+  const onClickMintBtn = async () => {
+    await collectBlog(blog, wallet, window.location.href);
+  };
+
   const screenWidth = useScreenWidth();
 
   return (
@@ -554,14 +760,23 @@ const BlogPage = () => {
                 </div>
                 <div className="flex flex-row items-center gap-5">
                   <div className="flex flex-row gap-5">
-                    <div onClick={(event) => onClickUpvote(event)}>
+                    <div
+                      onClick={(event) => onClickUpvote(event)}
+                      className="cursor-pointer"
+                    >
                       <FontAwesomeIcon icon={faHeart} /> {blog?.upvote}
                     </div>
-                    <div onClick={(event) => onClickDownvote(event)}>
+                    <div
+                      onClick={(event) => onClickDownvote(event)}
+                      className="cursor-pointer"
+                    >
                       <FontAwesomeIcon icon={faHeartCrack} /> {blog?.downvote}
                     </div>
                   </div>
-                  <Button className="text-right bg-primary shadow-lg text-white">
+                  <Button
+                    className="text-right bg-primary shadow-lg text-white"
+                    onClick={onClickMintBtn}
+                  >
                     Collect
                   </Button>
                 </div>
@@ -642,7 +857,7 @@ const BlogPage = () => {
                           Mint this entry as an NFT to add it to your
                           collection.
                         </p>
-                        <Button>Mint</Button>
+                        <Button onClick={onClickMintBtn}>Mint</Button>
                         <AvatarGroup
                           isBordered
                           max={5}

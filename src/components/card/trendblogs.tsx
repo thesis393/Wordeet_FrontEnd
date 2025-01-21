@@ -327,7 +327,7 @@ const TrendBlogCard = (props: INewBlogCard) => {
     }
     if (collectionAddress && updateResult) {
       const nftData = {
-        name: `${blogData.title}0`,
+        name: `${blogData.title}${blogData.ntotalcollecter}`,
         symbol: blogData.title
           .replace(/\s+/g, "")
           .substring(0, maxSymbolLength),
